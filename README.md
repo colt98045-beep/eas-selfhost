@@ -1,5 +1,8 @@
 # EAS self-host kit
 
+[![CI](https://github.com/colt98045-beep/eas-selfhost/actions/workflows/ci.yml/badge.svg)](https://github.com/colt98045-beep/eas-selfhost/actions/workflows/ci.yml)
+[![License: Apache 2.0](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
+
 Run the EAS dashboards yourself: a **US** emergency-alert dashboard (behind a Cloudflare Turnstile gate), a **Canada** dashboard, and a **launcher** with a status page, uptime history, an announcements/maintenance admin panel locked by Cloudflare Access, and a shared access log.
 
 You can run it two ways:
@@ -196,6 +199,12 @@ If you deploy through the dashboard or an API upload instead of `wrangler deploy
 - Keep the US gate checks (action, hostname, signed cookie, `run_worker_first`) intact. `us/scripts/check-worker-config.mjs` fails if the config would bypass the gate.
 - The access log stores **full client IPs** for 30 days. That is personal data in most places. Say so in your privacy policy, or change the code if you don't want it.
 - Every launcher response carries a strict CSP (`script-src 'self'`). Keep page scripts in `launcher/public/js/`.
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md). Please follow the [Code of Conduct](CODE_OF_CONDUCT.md).
+Report security issues privately as described in [SECURITY.md](SECURITY.md).
+Changes are tracked in [CHANGELOG.md](CHANGELOG.md).
 
 ## License
 

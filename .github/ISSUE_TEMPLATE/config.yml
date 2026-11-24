@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Security vulnerability
+    url: https://github.com/colt98045-beep/eas-selfhost/blob/main/SECURITY.md
+    about: Please don't post vulnerability details in a public issue. See SECURITY.md.
+  - name: Status page
+    url: https://eas-launcher.colt98045.workers.dev/status
+    about: Live status for the hosted EAS sites and APIs.
