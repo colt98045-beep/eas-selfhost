@@ -17,6 +17,9 @@ import { logRequest, usGateOutcome } from "./access-log.js";
 import { PRIVACY_HTML } from "./privacy.js";
 
 const VERIFY_PATH = '/__turnstile/verify';
+// Tab icon for the Worker-generated pages (challenge, failure). Inline data: URI,
+// so no new path is exempted from the gate. Same mark as index.html and /privacy.
+const ICON_LINK = `<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%231e3a8a'/%3E%3Cpath d='M32 10 56 52H8Z' fill='%23dc2626'/%3E%3Crect x='29' y='24' width='6' height='15' rx='3' fill='%23fff'/%3E%3Ccircle cx='32' cy='45' r='3.4' fill='%23fff'/%3E%3C/svg%3E">`;
 const EXPECTED_ACTION = 'gate';
 const COOKIE_NAME = '__Host-eas_gate';
 const COOKIE_TTL_SECONDS = 12 * 60 * 60;
@@ -370,6 +373,7 @@ function securityHeaders(nonce) {
       'frame-src https://challenges.cloudflare.com',
       "connect-src https://challenges.cloudflare.com",
       "style-src 'unsafe-inline'",
+      'img-src data:',
       "form-action 'self'",
       "base-uri 'none'",
       "frame-ancestors 'none'",
@@ -387,6 +391,7 @@ function challengePage(env, returnTo) {
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Checking your browser…</title>
+${ICON_LINK}
 <style>body{font-family:system-ui,sans-serif;display:flex;min-height:100vh;align-items:center;justify-content:center;margin:0;background:#f6f7f9;color:#222}
 main{background:#fff;padding:2rem 2.5rem;border-radius:12px;box-shadow:0 2px 12px rgba(0,0,0,.08);text-align:center;max-width:420px}
 button{margin-top:1rem;padding:.5rem 1.25rem;font-size:1rem;border-radius:8px;border:1px solid #ccc;background:#fff;cursor:pointer}</style>
@@ -414,14 +419,14 @@ function privacyPage(method) {
       'Cache-Control': 'public, max-age=3600',
       'X-Content-Type-Options': 'nosniff',
       'Referrer-Policy': 'same-origin',
-      'Content-Security-Policy': "default-src 'none'; style-src 'unsafe-inline'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'",
+      'Content-Security-Policy': "default-src 'none'; style-src 'unsafe-inline'; img-src data:; base-uri 'none'; form-action 'none'; frame-ancestors 'none'",
     },
   });
 }
 
 function failPage(status, returnTo) {
   const nonce = b64url(crypto.getRandomValues(new Uint8Array(16)));
-  const html = `<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Verification failed</title></head>
+  const html = `<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Verification failed</title>${ICON_LINK}</head>
 <body style="font-family:system-ui,sans-serif;text-align:center;padding-top:15vh">
 <h1 style="font-size:1.25rem">Verification failed</h1>
 <p><a href="${escapeHtml(returnTo)}">Try again</a></p></body></html>`;

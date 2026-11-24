@@ -15,8 +15,42 @@ export const KEEP_ENDED_MS = 7 * 24 * 60 * 60 * 1000;
 
 const SITE_LABELS = { us: "United States", ca: "Canada", launcher: "Launcher" };
 
+// Lockout reasons. Older KV values have no reason and read as "maintenance".
+export const REASONS = ["outage", "maintenance", "update", "other"];
+export const REASON_LABELS = { outage: "Outage", maintenance: "Maintenance", update: "Update", other: "Other" };
+export const DEFAULT_REASON = "maintenance";
+export const MAX_REASON_TEXT = 40;
+
+export function normalizeReason(reason, reasonText) {
+  const r = typeof reason === "string" && REASONS.includes(reason) ? reason : DEFAULT_REASON;
+  const text = r === "other" && typeof reasonText === "string" ? cleanReasonText(reasonText) : "";
+  return { reason: r, reason_text: text };
+}
+
+export function cleanReasonText(value) {
+  return String(value).replace(/[\u0000-\u001f\u007f]+/g, " ").replace(/\s+/g, " ").trim().slice(0, MAX_REASON_TEXT);
+}
+
+export function reasonLabel(reason, reasonText) {
+  const n = normalizeReason(reason, reasonText);
+  if (n.reason === "other") return n.reason_text || REASON_LABELS.other;
+  return REASON_LABELS[n.reason];
+}
+
+function validateReason(input) {
+  if (input.reason === undefined || input.reason === null || input.reason === "") return { value: { reason: DEFAULT_REASON, reason_text: "" } };
+  if (typeof input.reason !== "string" || !REASONS.includes(input.reason)) return { error: "reason must be outage, maintenance, update, or other" };
+  if (input.reason !== "other") return { value: { reason: input.reason, reason_text: "" } };
+  if (input.reason_text !== undefined && input.reason_text !== null && typeof input.reason_text !== "string") return { error: "reason_text must be a string" };
+  const raw = typeof input.reason_text === "string" ? input.reason_text.trim() : "";
+  if (raw.length > MAX_REASON_TEXT) return { error: `reason_text must be at most ${MAX_REASON_TEXT} characters` };
+  const text = cleanReasonText(raw);
+  if (!text) return { error: "reason_text is required when reason is other" };
+  return { value: { reason: "other", reason_text: text } };
+}
+
 export function emptySiteState() {
-  return { on: false, message: "", eta: null, updated_at: null, updated_by: null };
+  return { on: false, message: "", eta: null, reason: DEFAULT_REASON, reason_text: "", updated_at: null, updated_by: null };
 }
 
 export function defaultMaintenance() {
@@ -66,14 +100,20 @@ export function validateMaintenancePatch(input) {
   }
   const eta = parseTime(input.eta);
   if (eta === undefined) return { error: "eta must be an ISO timestamp or empty" };
-  return { value: { site, on: input.on, message, eta } };
+  const reason = validateReason(input);
+  if (reason.error) return { error: reason.error };
+  return { value: { site, on: input.on, message, eta, ...reason.value } };
 }
 
 export function publicView(site, row, now = Date.now()) {
   const state = row || emptySiteState();
+  const reason = normalizeReason(state.reason, state.reason_text);
   return {
     site,
     on: Boolean(state.on),
+    reason: reason.reason,
+    reason_text: reason.reason_text,
+    reason_label: reasonLabel(reason.reason, reason.reason_text),
     message: state.message || "",
     eta: state.eta || null,
     eta_et: state.eta ? formatEt(new Date(state.eta)) : null,
@@ -96,6 +136,7 @@ export function adminView(state, now = Date.now()) {
       ...emptySiteState(),
       ...row,
       on: Boolean(row.on),
+      reason_label: reasonLabel(row.reason, row.reason_text),
       label: SITE_LABELS[site],
       eta_et: row.eta ? formatEt(new Date(row.eta)) : null,
       updated_at_et: row.updated_at ? formatEt(new Date(row.updated_at)) : null,
@@ -122,6 +163,7 @@ export async function loadMaintenance(env) {
       on: Boolean(row.on),
       message: typeof row.message === "string" ? row.message : "",
       eta: row.eta || null,
+      ...normalizeReason(row.reason, row.reason_text),
       updated_at: row.updated_at || null,
       updated_by: row.updated_by || null,
     };
@@ -147,6 +189,7 @@ export function normalizeSchedule(list) {
       start: w.start,
       end: w.end,
       message: typeof w.message === "string" ? w.message : "",
+      ...normalizeReason(w.reason, w.reason_text),
       announcement_id: w.announcement_id || null,
       created_at: w.created_at || null,
       created_by: w.created_by || null,
@@ -181,6 +224,8 @@ export function effectiveSiteState(state, site, now = Date.now()) {
   return {
     ...row,
     on: true,
+    reason: win.reason || DEFAULT_REASON,
+    reason_text: win.reason_text || "",
     message: win.message || row.message || "",
     eta: win.end,
     scheduled: { id: win.id, start: win.start, end: win.end },
@@ -206,9 +251,11 @@ export function validateWindow(input, { now = Date.now(), existing = [] } = {}) 
     message = input.message.trim();
     if (message.length > MAX_MESSAGE) return { error: `message must be at most ${MAX_MESSAGE} characters` };
   }
+  const reason = validateReason(input);
+  if (reason.error) return { error: reason.error };
   const live = existing.filter((w) => windowPhase(w, now) !== "ended");
   if (live.length >= MAX_WINDOWS) return { error: `At most ${MAX_WINDOWS} upcoming windows can be scheduled` };
-  return { value: { sites: SITES.filter((s) => sites.includes(s)), start, end, message, announce: input.announce !== false } };
+  return { value: { sites: SITES.filter((s) => sites.includes(s)), start, end, message, ...reason.value, announce: input.announce !== false } };
 }
 
 export function windowView(win, now = Date.now()) {
@@ -218,6 +265,7 @@ export function windowView(win, now = Date.now()) {
     start_et: formatEt(new Date(win.start)),
     end_et: formatEt(new Date(win.end)),
     sites_label: win.sites.map((s) => SITE_LABELS[s]).join(", "),
+    reason_label: reasonLabel(win.reason, win.reason_text),
   };
 }
 
@@ -226,9 +274,10 @@ export function announcementForWindow(win, { id, stamp, email }) {
   const from = formatEt(new Date(win.start));
   const to = formatEt(new Date(win.end));
   const extra = win.message ? `\n\n${win.message}` : "";
+  const label = reasonLabel(win.reason, win.reason_text);
   return {
     id,
-    title: "Scheduled maintenance",
+    title: win.reason && win.reason !== DEFAULT_REASON ? `Scheduled lockout: ${label}` : "Scheduled maintenance",
     message: `${names} will be unavailable from ${from} to ${to}.${extra}`.slice(0, MAX_MESSAGE),
     type: "maintenance",
     targets: win.sites.length === SITES.length ? ["all"] : win.sites.slice(),
@@ -374,6 +423,8 @@ export async function handleAdminMaintenance(request, env, identity, { now = Dat
       start: checked.value.start,
       end: checked.value.end,
       message: checked.value.message,
+      reason: checked.value.reason,
+      reason_text: checked.value.reason_text,
       announcement_id: null,
       created_at: stamp,
       created_by: email,
@@ -432,14 +483,33 @@ export async function handleAdminMaintenance(request, env, identity, { now = Dat
     if (checked.error) return jsonResponse({ error: checked.error }, { status: 400 });
     const state = await loadMaintenance(env);
     const stamp = new Date(now).toISOString();
-    state[checked.value.site] = {
+    const site = checked.value.site;
+    const prev = state[site] || emptySiteState();
+    const wasOn = Boolean(prev.on);
+    state[site] = {
       on: checked.value.on,
       message: checked.value.message,
       eta: checked.value.eta,
+      reason: checked.value.reason,
+      reason_text: checked.value.reason_text,
       updated_at: stamp,
       updated_by: email,
     };
     await saveMaintenance(env, state);
+    const label = reasonLabel(checked.value.reason, checked.value.reason_text);
+    const audits = [];
+    if (checked.value.on && !wasOn) audits.push(["maintenance_lock", `${site}: ${label}`]);
+    else if (!checked.value.on && wasOn) audits.push(["maintenance_unlock", site]);
+    else if (checked.value.on && reasonLabel(prev.reason, prev.reason_text) !== label) {
+      audits.push(["maintenance_reason_change", `${site}: ${reasonLabel(prev.reason, prev.reason_text)} -> ${label}`]);
+    }
+    for (const [action, target] of audits) {
+      try {
+        await writeAdminAudit(env, { actor: email || "unknown", action, email: target, now });
+      } catch {
+        // best-effort
+      }
+    }
     return jsonResponse(adminPayload(state, now));
   }
   return new Response("Method Not Allowed", {
@@ -463,7 +533,19 @@ export async function maybeServeMaintenance(request, env) {
   return maintenancePageResponse(launcher, request.method);
 }
 
+// How each reason looks on the lockout page. Kept in sync with the client
+// overlays in the US and CA index.html (tests/maintenance-reason.test.mjs).
+export const REASON_STYLE = {
+  outage: { icon: "\u26a0\ufe0f", color: "#ef4444", heading: "This site is down right now", fallback: "We're working on a fix. Please check back shortly." },
+  maintenance: { icon: "\ud83d\udd27", color: "#f59e0b", heading: "This site is temporarily down", fallback: "We're making updates. Please check back shortly." },
+  update: { icon: "\u2b06\ufe0f", color: "#3b82f6", heading: "This site is being updated", fallback: "We're rolling out an update. This usually takes a few minutes." },
+  other: { icon: "\u2139\ufe0f", color: "#a78bfa", heading: "This site is temporarily unavailable", fallback: "Please check back shortly." },
+};
+
 export function maintenancePageResponse(row, method = "GET") {
+  const { reason, reason_text: reasonText } = normalizeReason(row.reason, row.reason_text);
+  const look = REASON_STYLE[reason];
+  const label = escapeHtml(reasonLabel(reason, reasonText));
   const message = typeof row.message === "string" ? row.message.trim() : "";
   const etaEt = row.eta ? formatEt(new Date(row.eta)) : "";
   const retryAfter = row.eta ? Math.max(0, Math.ceil((Date.parse(row.eta) - Date.now()) / 1000)) : 0;
@@ -474,9 +556,10 @@ export function maintenancePageResponse(row, method = "GET") {
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>EAS — Under maintenance</title>
+  <title>EAS — ${label}</title>
+  <link rel="icon" type="image/svg+xml" href="/icon.svg">
   <style>
-    :root { --bg:#070b14; --surface:#0f1623; --border:rgba(255,255,255,.08); --text:#f1f5f9; --muted:#94a3b8; --amber:#f59e0b; --radius:12px; }
+    :root { --bg:#070b14; --surface:#0f1623; --border:rgba(255,255,255,.08); --text:#f1f5f9; --muted:#94a3b8; --amber:${look.color}; --radius:12px; }
     * { box-sizing:border-box; }
     body { margin:0; min-height:100dvh; display:grid; place-items:center; background:var(--bg); color:var(--text); font-family:Inter,system-ui,sans-serif; padding:24px; }
     main { max-width:34rem; width:100%; background:var(--surface); border:1px solid var(--border); border-top:4px solid var(--amber); border-radius:var(--radius); padding:28px 24px; text-align:center; }
@@ -489,9 +572,9 @@ export function maintenancePageResponse(row, method = "GET") {
 </head>
 <body>
   <main>
-    <p class="kicker">Maintenance</p>
-    <h1>This site is temporarily down</h1>
-    ${safeMessage ? `<p>${safeMessage}</p>` : "<p>We're making updates. Please check back shortly.</p>"}
+    <p class="kicker reason-${reason}"><span aria-hidden="true">${look.icon}</span> ${label}</p>
+    <h1>${look.heading}</h1>
+    ${safeMessage ? `<p>${safeMessage}</p>` : `<p>${escapeHtml(look.fallback)}</p>`}
     ${safeEta ? `<p class="eta">Expected back: ${safeEta}</p>` : ""}
     <button type="button" id="retry">Check again</button>
   </main>

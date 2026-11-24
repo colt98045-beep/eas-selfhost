@@ -19,7 +19,15 @@ const strip = (src) => src.replace(/^(\s*<!--[\s\S]*?-->)+\s*/, "").trim();
 const body = strip(fs.readFileSync(path.join(root, "privacy", "policy.html"), "utf8"));
 const bodyFr = strip(fs.readFileSync(path.join(root, "privacy", "policy.fr.html"), "utf8"));
 
-function page({ title, back, backLabel, bilingual = false }) {
+// Tab icons. The launcher serves /icon.svg; US and CA embed theirs as data: URIs
+// (no extra asset path, so the US gate and .assetsignore allowlists stay unchanged).
+const ICONS = {
+  launcher: "/icon.svg",
+  us: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%231e3a8a'/%3E%3Cpath d='M32 10 56 52H8Z' fill='%23dc2626'/%3E%3Crect x='29' y='24' width='6' height='15' rx='3' fill='%23fff'/%3E%3Ccircle cx='32' cy='45' r='3.4' fill='%23fff'/%3E%3C/svg%3E",
+  ca: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23d52b1e'/%3E%3Crect x='16' width='32' height='64' fill='%23fff'/%3E%3Cpath d='M32 14 47 44H17Z' fill='%23d52b1e'/%3E%3Crect x='30' y='23' width='4' height='12' rx='2' fill='%23fff'/%3E%3Ccircle cx='32' cy='39.5' r='2.4' fill='%23fff'/%3E%3C/svg%3E",
+};
+
+function page({ title, back, backLabel, bilingual = false, icon = ICONS.launcher }) {
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -27,6 +35,7 @@ function page({ title, back, backLabel, bilingual = false }) {
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="dark light">
   <title>${title}</title>
+  <link rel="icon" type="image/svg+xml" href="${icon}">
   <!-- Generated from eas-launcher/privacy/policy.html by scripts/sync-privacy.mjs. Do not edit here. -->
   <style>
     :root { --bg:#070b14; --surface:#0f1623; --border:rgba(255,255,255,.08); --text:#f1f5f9; --muted:#94a3b8; --link:#93c5fd; }
@@ -82,11 +91,11 @@ function write(file, content) {
 write(path.join(root, "public", "privacy.html"), page({ title: "Privacy policy · EAS Launcher", back: "/", backLabel: "EAS Launcher" }));
 
 if (fs.existsSync(path.join(caDir, "index.html"))) {
-  write(path.join(caDir, "privacy.html"), page({ title: "Privacy policy · Politique de confidentialité · EAS Repository Canada", back: "/", backLabel: "EAS Repository Canada", bilingual: true }));
+  write(path.join(caDir, "privacy.html"), page({ title: "Privacy policy · Politique de confidentialité · EAS Repository Canada", back: "/", backLabel: "EAS Repository Canada", bilingual: true, icon: ICONS.ca }));
 } else console.log(`skip CA (${caDir} not found)`);
 
 if (fs.existsSync(path.join(usDir, "src", "index.js"))) {
-  const html = page({ title: "Privacy policy · EAS Repository", back: "/", backLabel: "EAS Repository" });
+  const html = page({ title: "Privacy policy · EAS Repository", back: "/", backLabel: "EAS Repository", icon: ICONS.us });
   write(
     path.join(usDir, "src", "privacy.js"),
     `// Generated from eas-launcher/privacy/policy.html by scripts/sync-privacy.mjs. Do not edit here.\n` +

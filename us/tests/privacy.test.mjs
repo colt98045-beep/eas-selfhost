@@ -57,4 +57,21 @@ ok(/href="\/privacy"/.test(html.slice(html.indexOf('<footer class="site-footer">
 ok(!html.includes('EAS-PRIVACY:START'), 'old in-page #privacy section removed');
 const ignore = fs.readFileSync('.assetsignore', 'utf8');
 ok(!/privacy/.test(ignore), '.assetsignore allowlist unchanged (no privacy asset published)');
+// Tab icon: one inline data: URI on every US page, no new path, CSP widened only by img-src data:
+const iconOf = (h) => (h.match(/<link rel="icon" type="image\/svg\+xml" href="(data:image\/svg\+xml,[^"]+)">/) || [])[1];
+const indexIcon = iconOf(html);
+ok(Boolean(indexIcon), 'index.html has the inline data: tab icon');
+ok(iconOf(PRIVACY_HTML) === indexIcon, '/privacy uses the same tab icon');
+r = await get('/docs');
+const challengeCsp = r.headers.get('content-security-policy') || '';
+ok(iconOf(await r.text()) === indexIcon, 'challenge page uses the same tab icon');
+ok(/(^|; )img-src data:(;|$)/.test(challengeCsp) && !/img-src[^;]*(\*|https?:)/.test(challengeCsp), 'challenge CSP allows only data: images');
+ok(/default-src 'none'/.test(challengeCsp) && /frame-ancestors 'none'/.test(challengeCsp), 'challenge CSP otherwise unchanged');
+r = await get('/privacy');
+ok(/img-src data:;/.test(r.headers.get('content-security-policy') || ''), '/privacy CSP allows data: icon');
+for (const p of ['/icon.svg', '/favicon.ico', '/favicon.svg']) {
+  const res = await get(p);
+  ok(res.status === 403 && (await res.text()).includes('cf-turnstile'), `${p} is still gated (no new icon path)`);
+}
+ok(/const CACHE = "eas-v5"/.test(fs.readFileSync('sw.js', 'utf8')), 'service worker cache bumped to eas-v5');
 if (!process.exitCode) console.log('US privacy tests passed');

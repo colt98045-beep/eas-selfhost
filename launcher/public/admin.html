@@ -110,6 +110,11 @@
     .maint-site.on { border-color: var(--amber); }
     .maint-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
     .maint-head h3 { margin: 0; font-size: 1rem; }
+    [hidden] { display: none !important; }
+    .pill.reason-outage { background: rgba(239,68,68,.18); color: #fca5a5; }
+    .pill.reason-maintenance { background: rgba(245,158,11,.18); color: #fcd34d; }
+    .pill.reason-update { background: rgba(59,130,246,.18); color: #93c5fd; }
+    .pill.reason-other { background: rgba(167,139,250,.18); color: #c4b5fd; }
     .toggle { display: flex; align-items: center; gap: 8px; font-size: .85rem; font-weight: 600; color: var(--text); }
     .toggle input { width: auto; accent-color: var(--amber); }
     table { width: 100%; border-collapse: collapse; font-size: .82rem; }
@@ -201,6 +206,17 @@
             <input id="schedEnd" type="datetime-local" step="60" required>
           </label>
         </div>
+        <label>Reason
+          <select id="schedReason" name="reason" class="reason-select">
+            <option value="maintenance" selected>🔧 Maintenance</option>
+            <option value="outage">⚠️ Outage</option>
+            <option value="update">⬆️ Update</option>
+            <option value="other">ℹ️ Other</option>
+          </select>
+        </label>
+        <label class="reason-other" hidden>Custom reason (max 40 characters)
+          <input id="schedReasonText" name="reason_text" maxlength="40">
+        </label>
         <label>Message (optional)
           <textarea id="schedMessage" maxlength="2000"></textarea>
         </label>

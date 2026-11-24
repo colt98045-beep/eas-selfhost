@@ -19,4 +19,11 @@ ok(ignore.includes("*"), "everything else still ignored");
 const index = fs.readFileSync("index.html", "utf8");
 ok(index.includes('href="/privacy"'), "index links to /privacy");
 ok(/const CACHE = "eas-ca-v\d+"/.test(fs.readFileSync("sw.js", "utf8")), "service worker cache name present");
+// Tab icon: CA variant as an inline data: URI, identical on index and /privacy (no new asset path)
+const iconOf = (h) => (h.match(/<link rel="icon" type="image\/svg\+xml" href="(data:image\/svg\+xml,[^"]+)">/) || [])[1];
+const caIcon = iconOf(index);
+ok(Boolean(caIcon) && decodeURIComponent(caIcon).includes("#d52b1e"), "index.html has the CA tab icon");
+ok(iconOf(page) === caIcon, "/privacy uses the same CA tab icon");
+ok(!ignore.some((l) => /icon|favicon/i.test(l)), ".assetsignore unchanged for icons");
+ok(/const CACHE = "eas-ca-v5"/.test(fs.readFileSync("sw.js", "utf8")), "service worker cache bumped to eas-ca-v5");
 if (!process.exitCode) console.log("CA privacy tests passed");

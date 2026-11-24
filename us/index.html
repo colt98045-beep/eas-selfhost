@@ -8,6 +8,7 @@
 <head>
 <meta charset="utf-8">
 <title>EAS Repository</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%231e3a8a'/%3E%3Cpath d='M32 10 56 52H8Z' fill='%23dc2626'/%3E%3Crect x='29' y='24' width='6' height='15' rx='3' fill='%23fff'/%3E%3Ccircle cx='32' cy='45' r='3.4' fill='%23fff'/%3E%3C/svg%3E">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <link rel="manifest" href="/manifest.json">
@@ -109,6 +110,13 @@
 (function () {
   var API = "https://eas-launcher.your-subdomain.workers.dev/api/maintenance?site=us";
   var REFRESH_MS = 15000;
+  // Lockout reasons (same look as the launcher's lockout page). Unknown or missing -> maintenance.
+  var REASONS = {
+    outage: { icon: "\u26a0\ufe0f", label: "Outage", color: "#ef4444", heading: "This site is down right now", fallback: "We&apos;re working on a fix. Please check back shortly." },
+    maintenance: { icon: "\ud83d\udd27", label: "Maintenance", color: "#f59e0b", heading: "This site is temporarily down", fallback: "We&apos;re making updates. Please check back shortly." },
+    update: { icon: "\u2b06\ufe0f", label: "Update", color: "#3b82f6", heading: "This site is being updated", fallback: "We&apos;re rolling out an update. This usually takes a few minutes." },
+    other: { icon: "\u2139\ufe0f", label: "Other", color: "#a78bfa", heading: "This site is temporarily unavailable", fallback: "Please check back shortly." }
+  };
   function escapeHtml(value) {
     return String(value).replace(/[&<>"']/g, function (ch) {
       return ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[ch];
@@ -118,7 +126,7 @@
     if (document.getElementById("eas-maint-style")) return;
     var style = document.createElement("style");
     style.id = "eas-maint-style";
-    style.textContent = "#eas-maint-lock{position:fixed;inset:0;z-index:10000;display:grid;place-items:center;background:#070b14;color:#f1f5f9;font-family:Inter,system-ui,sans-serif;padding:24px}#eas-maint-lock main{max-width:34rem;width:100%;background:#0f1623;border:1px solid rgba(255,255,255,.08);border-top:4px solid #f59e0b;border-radius:12px;padding:28px 24px;text-align:center}#eas-maint-lock .kicker{margin:0 0 8px;font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#f59e0b}#eas-maint-lock h1{margin:0 0 10px;font-size:1.4rem}#eas-maint-lock p{margin:0 0 10px;color:#94a3b8;white-space:pre-wrap}#eas-maint-lock p.eta{color:#f1f5f9;font-weight:600}#eas-maint-lock button{margin-top:12px;font:inherit;font-weight:500;border-radius:8px;border:1px solid rgba(255,255,255,.2);background:#1a2332;color:#f1f5f9;padding:9px 14px;cursor:pointer}";
+    style.textContent = "#eas-maint-lock{position:fixed;inset:0;z-index:10000;display:grid;place-items:center;background:#070b14;color:#f1f5f9;font-family:Inter,system-ui,sans-serif;padding:24px}#eas-maint-lock main{max-width:34rem;width:100%;background:#0f1623;border:1px solid rgba(255,255,255,.08);border-top:4px solid #f59e0b;border-radius:12px;padding:28px 24px;text-align:center}#eas-maint-lock .kicker{margin:0 0 8px;font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#f59e0b}#eas-maint-lock h1{margin:0 0 10px;font-size:1.4rem}#eas-maint-lock p{margin:0 0 10px;color:#94a3b8;white-space:pre-wrap}#eas-maint-lock p.eta{color:#f1f5f9;font-weight:600}#eas-maint-lock.r-outage main{border-top-color:#ef4444}#eas-maint-lock.r-outage .kicker{color:#ef4444}#eas-maint-lock.r-update main{border-top-color:#3b82f6}#eas-maint-lock.r-update .kicker{color:#3b82f6}#eas-maint-lock.r-other main{border-top-color:#a78bfa}#eas-maint-lock.r-other .kicker{color:#a78bfa}#eas-maint-lock button{margin-top:12px;font:inherit;font-weight:500;border-radius:8px;border:1px solid rgba(255,255,255,.2);background:#1a2332;color:#f1f5f9;padding:9px 14px;cursor:pointer}";
     document.head.appendChild(style);
   }
   function hide() {
@@ -136,9 +144,14 @@
       el.setAttribute("aria-label", "Maintenance");
       document.body.appendChild(el);
     }
-    var message = data.message ? escapeHtml(data.message) : "We&apos;re making updates. Please check back shortly.";
+    var key = Object.prototype.hasOwnProperty.call(REASONS, data.reason) ? data.reason : "maintenance";
+    var look = REASONS[key];
+    var label = key === "other" && data.reason_label ? String(data.reason_label).slice(0, 40) : look.label;
+    el.className = "r-" + key;
+    el.setAttribute("aria-label", label);
+    var message = data.message ? escapeHtml(data.message) : look.fallback;
     var eta = data.eta_et ? '<p class="eta">Expected back: ' + escapeHtml(data.eta_et) + "</p>" : "";
-    el.innerHTML = "<main><p class='kicker'>Maintenance</p><h1>This site is temporarily down</h1><p>" + message + "</p>" + eta + "<button type='button' id='eas-maint-retry'>Check again</button></main>";
+    el.innerHTML = "<main><p class='kicker'><span aria-hidden='true'>" + look.icon + "</span> " + escapeHtml(label) + "</p><h1>" + look.heading + "</h1><p>" + message + "</p>" + eta + "<button type='button' id='eas-maint-retry'>Check again</button></main>";
     var btn = document.getElementById("eas-maint-retry");
     if (btn) btn.addEventListener("click", tick);
     document.documentElement.style.overflow = "hidden";

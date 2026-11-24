@@ -59,6 +59,18 @@
   const maintGrid = document.getElementById("maintGrid");
   const maintError = document.getElementById("maintError");
   const SITE_ORDER = ["us", "ca", "launcher"];
+  const REASONS = [["maintenance", "🔧 Maintenance"], ["outage", "⚠️ Outage"], ["update", "⬆️ Update"], ["other", "ℹ️ Other"]];
+
+  function reasonFields(reason, reasonText, prefix) {
+    const r = REASONS.some(([v]) => v === reason) ? reason : "maintenance";
+    const opts = REASONS.map(([v, l]) => `<option value="${v}"${v === r ? " selected" : ""}>${l}</option>`).join("");
+    return `<label>Reason
+          <select name="reason" class="reason-select">${opts}</select>
+        </label>
+        <label class="reason-other"${r === "other" ? "" : " hidden"}>Custom reason (max 40 characters)
+          <input name="reason_text" maxlength="40" value="${escapeHtml(reasonText || "")}"${prefix ? ` id="${prefix}ReasonText"` : ""}>
+        </label>`;
+  }
 
   function renderMaintenance(sites) {
     maintGrid.innerHTML = SITE_ORDER.map((id) => {
@@ -72,6 +84,8 @@
           <h3>${escapeHtml(row.label || id)}${!row.on && row.scheduled ? ` <span class="pill sched">Scheduled lock until ${escapeHtml(row.scheduled.end_et || "")}</span>` : ""}</h3>
           <label class="toggle"><input type="checkbox" name="on" ${checked}><span class="toggle-state">${label}</span></label>
         </div>
+        ${row.on ? `<p class="meta"><span class="pill reason-${escapeHtml(row.reason || "maintenance")}">${escapeHtml(row.reason_label || "Maintenance")}</span></p>` : ""}
+        ${reasonFields(row.reason, row.reason_text)}
         <label>Message (optional)
           <textarea name="message" maxlength="2000">${escapeHtml(row.message || "")}</textarea>
         </label>
@@ -344,6 +358,13 @@
     </tr>`).join("")}</tbody></table>`;
   }
 
+  document.addEventListener("change", (event) => {
+    if (!event.target.matches || !event.target.matches("select.reason-select")) return;
+    const wrap = event.target.closest("form");
+    const other = wrap && wrap.querySelector(".reason-other");
+    if (other) other.hidden = event.target.value !== "other";
+  });
+
   maintGrid.addEventListener("change", (event) => {
     const form = event.target.closest("form[data-site]");
     if (!form || event.target.name !== "on") return;
@@ -369,6 +390,8 @@
           on: form.querySelector('input[name="on"]').checked,
           message: form.querySelector('[name="message"]').value,
           eta: inputToIso(form.querySelector('[name="eta"]').value),
+          reason: form.querySelector('[name="reason"]').value,
+          reason_text: form.querySelector('[name="reason_text"]').value,
         }),
       });
       renderMaintenance(data.sites || {});

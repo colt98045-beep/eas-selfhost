@@ -60,6 +60,7 @@
         '<div class="item-head"><div>' +
         '<h3>' + esc(w.sites_label) + '</h3>' +
         '<p>' + esc(w.start_et) + ' to ' + esc(w.end_et) + '</p>' +
+        '<p><span class="pill reason-' + esc(w.reason || "maintenance") + '">' + esc(w.reason_label || "Maintenance") + '</span></p>' +
         (w.message ? '<p>' + esc(w.message) + '</p>' : '') +
         '</div><div class="actions">' +
         (w.phase !== "ended" ? '<button type="button" class="danger" data-act="cancel">' + (w.phase === "active" ? "End now" : "Cancel") + '</button>' : '') +
@@ -98,11 +99,15 @@
           body: JSON.stringify({
             sites: sites, start: start, end: end,
             message: document.getElementById("schedMessage").value,
+            reason: document.getElementById("schedReason").value,
+            reason_text: document.getElementById("schedReasonText").value,
             announce: document.getElementById("schedAnnounce").checked,
           }),
         });
         renderSchedule(data.schedule || []);
         schedForm.reset();
+        const other = schedForm.querySelector(".reason-other");
+        if (other) other.hidden = true;
         document.getElementById("schedAnnounce").checked = true;
         if (data.announced === false && document.getElementById("schedAnnounce")) {
           schedError.textContent = "Scheduled, but the announcement was not posted (announcement list full).";

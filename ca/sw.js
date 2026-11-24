@@ -1,4 +1,4 @@
-const CACHE = "eas-ca-v4";
+const CACHE = "eas-ca-v5";
 const ASSETS = ["/", "/index.html"];
 
 self.addEventListener("install", e => {
