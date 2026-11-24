@@ -127,6 +127,15 @@
     }
     .dot.gated { background: var(--amber); box-shadow: 0 0 0 3px rgba(245,158,11,.2); }
     .uptime { font-variant-numeric: tabular-nums; }
+    .lockout { margin: 8px 0 0; padding: 8px 10px; border-radius: 8px; border-left: 3px solid var(--lock, var(--accent)); background: rgba(239,68,68,.08); font-size: .82rem; color: var(--text); white-space: pre-wrap; }
+    .lockout[hidden] { display: none; }
+    .lockout b { color: var(--lock, var(--accent)); }
+    .lockout .lk-meta { display: block; color: var(--muted); font-size: .75rem; margin-top: 2px; }
+    .lockout.reason-outage { --lock: #ef4444; }
+    .lockout.reason-maintenance { --lock: #f59e0b; background: rgba(245,158,11,.08); }
+    .lockout.reason-update { --lock: #3b82f6; background: rgba(59,130,246,.08); }
+    .lockout.reason-other { --lock: #a78bfa; background: rgba(167,139,250,.08); }
+    .status.locked { color: var(--accent); }
     footer a { color: inherit; }
     .dot.down {
       background: var(--accent);
@@ -239,6 +248,7 @@
             <h2 id="us-title">United States</h2>
             <p class="sub">eas-repository</p>
             <p class="sub uptime" id="us-uptime"></p>
+            <p class="lockout" id="us-lockout" role="status" hidden></p>
           </div>
           <div class="status" title="Checking…" aria-live="polite">
             <span class="dot" id="us-dot" aria-hidden="true"></span>
@@ -256,6 +266,7 @@
             <h2 id="ca-title">Canada</h2>
             <p class="sub">eas-repository-ca</p>
             <p class="sub uptime" id="ca-uptime"></p>
+            <p class="lockout" id="ca-lockout" role="status" hidden></p>
           </div>
           <div class="status" title="Checking…" aria-live="polite">
             <span class="dot" id="ca-dot" aria-hidden="true"></span>

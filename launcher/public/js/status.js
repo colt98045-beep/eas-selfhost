@@ -88,6 +88,7 @@
     var cache = data.cache || {};
     metaEl.innerHTML = "Last checked <strong>" + esc(data.checked_at) + "</strong> · " + (cache.hit ? "cached" : "fresh") + " · auto-refresh 20s";
     groupsEl.innerHTML = (data.groups || []).map(function (group) {
+      var lock = group.lockout;
       var rows = (group.checks || []).map(function (check) {
         var code = check.status == null ? "—" : String(check.status);
         var latency = typeof check.latency_ms === "number" ? check.latency_ms + " ms" : "—";
@@ -103,9 +104,36 @@
       }).join("");
       return '<section class="group" aria-labelledby="g-' + esc(group.id) + '">' +
         '<div class="group-head"><h2 id="g-' + esc(group.id) + '">' + esc(group.name) + "</h2>" +
-        '<div class="status"><span class="dot ' + esc(group.state) + '" aria-hidden="true"></span>' + esc(overallText(group.state)) + "</div></div>" +
+        '<div class="status"><span class="dot ' + esc(group.state) + '" aria-hidden="true"></span>' +
+        esc(lock ? "Down · " + (lock.icon ? lock.icon + " " : "") + (lock.reason_label || "Maintenance") : overallText(group.state)) + "</div></div>" +
+        (lock ? lockoutBanner(lock) : "") +
         rows + "</section>";
     }).join("");
+  }
+
+  // A locked site shows DOWN with its reason; its checks below still show the raw probe results.
+  function lockoutBanner(lock) {
+    var meta = [];
+    if (lock.since_et) meta.push((lock.scheduled ? "Scheduled lockout since " : "Locked since ") + lock.since_et);
+    if (lock.eta_et) meta.push("expected back " + lock.eta_et);
+    return '<div class="lockout reason-' + esc(lock.reason || "maintenance") + '" role="status">' +
+      '<b>Active incident: ' + esc((lock.icon ? lock.icon + " " : "") + (lock.reason_label || "Maintenance")) + '</b>' +
+      (lock.message ? '<p>' + esc(lock.message) + '</p>' : '') +
+      (meta.length ? '<span class="lk-meta">' + esc(meta.join(" · ")) + '</span>' : '') +
+      '</div>';
+  }
+
+  function incidentHtml(i) {
+    var isLock = i.kind === "lockout";
+    var kind = isLock
+      ? '<span class="tag kind lockout reason-' + esc(i.reason || "maintenance") + '">' + esc((i.icon ? i.icon + " " : "") + "Lockout · " + (i.reason_label || "Maintenance")) + (i.scheduled ? " (scheduled)" : "") + '</span>'
+      : '<span class="tag kind auto">Health check</span>';
+    var what = isLock ? esc(i.check) : esc(i.check) + ' · ' + esc(i.label) + (i.status ? " (HTTP " + esc(i.status) + ")" : "");
+    return '<div class="incident' + (isLock ? " is-lockout reason-" + esc(i.reason || "maintenance") : "") + '"><div>' + what + ' ' + kind + '</div>' +
+      '<span class="tag ' + (i.ongoing ? "ongoing" : "resolved") + '">' + (i.ongoing ? "Ongoing" : "Resolved") + '</span>' +
+      '<div class="when">' + esc(i.started_at) + (i.ended_at ? " to " + esc(i.ended_at) : " to now") + ' · ' + esc(i.duration) + '</div>' +
+      (isLock && i.message ? '<div class="msg">' + esc(i.message) + '</div>' : '') +
+      '</div>';
   }
 
   function renderUptime(data) {
@@ -121,11 +149,7 @@
     } else if (!list.length) {
       incidentsEl.innerHTML = '<p class="muted">No incidents in the last 30 days.</p>';
     } else {
-      incidentsEl.innerHTML = list.map(function (i) {
-        return '<div class="incident"><div>' + esc(i.check) + ' · ' + esc(i.label) + (i.status ? " (HTTP " + esc(i.status) + ")" : "") + '</div>' +
-          '<span class="tag ' + (i.ongoing ? "ongoing" : "resolved") + '">' + (i.ongoing ? "Ongoing" : "Resolved") + '</span>' +
-          '<div class="when">' + esc(i.started_at) + (i.ended_at ? " to " + esc(i.ended_at) : " to now") + ' · ' + esc(i.duration) + '</div></div>';
-      }).join("");
+      incidentsEl.innerHTML = list.map(incidentHtml).join("");
     }
     if (lastStatus) render(lastStatus);
   }

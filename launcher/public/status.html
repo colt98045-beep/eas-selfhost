@@ -215,6 +215,22 @@
     .incident .tag { font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; }
     .incident .tag.ongoing { color: var(--accent); }
     .incident .tag.resolved { color: var(--green); }
+    .incident .tag.kind { margin-left: 6px; padding: 1px 7px; border-radius: 999px; border: 1px solid var(--border); text-transform: none; letter-spacing: 0; font-weight: 600; }
+    .incident .tag.kind.auto { color: var(--muted); }
+    .incident .tag.kind.lockout { color: var(--lock, var(--accent)); border-color: var(--lock, var(--accent)); }
+    .incident.is-lockout { border-left: 3px solid var(--lock, var(--accent)); padding-left: 10px; }
+    .incident .msg { grid-column: 1 / -1; color: var(--text); font-size: .82rem; white-space: pre-wrap; }
+    .lockout { margin: 0 0 10px; padding: 10px 12px; border-radius: 8px; border-left: 3px solid var(--lock, var(--accent)); background: rgba(239,68,68,.08); font-size: .88rem; }
+    .lockout b { color: var(--lock, var(--accent)); }
+    .lockout p { margin: 4px 0 0; white-space: pre-wrap; }
+    .lockout .lk-meta { display: block; color: var(--muted); font-size: .78rem; margin-top: 4px; }
+    .reason-outage { --lock: #ef4444; }
+    .reason-maintenance { --lock: #f59e0b; }
+    .reason-update { --lock: #3b82f6; }
+    .reason-other { --lock: #a78bfa; }
+    .lockout.reason-maintenance { background: rgba(245,158,11,.08); }
+    .lockout.reason-update { background: rgba(59,130,246,.08); }
+    .lockout.reason-other { background: rgba(167,139,250,.08); }
     .muted { color: var(--muted); }
     code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .75rem; word-break: break-all; }
     @media (max-width: 640px) { .history { grid-template-columns: 1fr; } .spark { width: 100%; } }
@@ -295,7 +311,7 @@
       Live checks run on the launcher Worker with an 8s timeout and a 15s cache; the page refreshes every 20s.
       Uptime history is sampled every 5 minutes by a cron on the launcher and kept for 30 days; each bar is one ET day.
       An incident opens when a check is first seen down and closes when it is next seen up.
-      A US Turnstile challenge (HTTP 403) counts as <strong>Up, gated</strong> — the Worker is up, and this check does not pass the gate or read API bodies.
+      A site locked from the admin panel (or by an active scheduled window) shows as <strong>Down</strong> with its reason and is listed as a <strong>Lockout</strong> incident; lockout time is not counted as uptime or downtime. A US Turnstile challenge (HTTP 403) counts as <strong>Up, gated</strong> — the Worker is up, and this check does not pass the gate or read API bodies.
       Times are 24-hour America/New_York (ET), dates are DD/MM/YYYY.
       <br>Badge: <code>https://img.shields.io/endpoint?url=https://eas-launcher.your-subdomain.workers.dev/api/badge?target=us</code>
       (targets <code>overall</code>, <code>us</code>, <code>ca</code>, <code>launcher</code>; add <code>&amp;metric=uptime30d</code> for uptime).

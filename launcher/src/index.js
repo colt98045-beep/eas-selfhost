@@ -5,6 +5,7 @@
 // /admin and /api/admin/* require a verified Cloudflare Access JWT
 // and fail closed if Access is missing or misconfigured.
 import { getStatus } from "./status.js";
+import { currentLockouts, decorateStatus, syncLockoutIncidents } from "./lockout.js";
 import { isAdminPath, requireAccess } from "./access.js";
 import { handlePublicAnnouncements, handleAdminApi } from "./announcements.js";
 import { handlePublicMaintenance, handleAdminMaintenance, maybeServeMaintenance } from "./maintenance.js";
@@ -12,7 +13,7 @@ import { handleAdminLogs, logRequest } from "./access-log.js";
 import { handleAdminUsers } from "./admins.js";
 import { handleAccessLogins } from "./access-sync.js";
 import { handleAdminStats } from "./access-stats.js";
-import { handlePublicUptime } from "./uptime.js";
+import { handlePublicUptime, resetUptimeCache } from "./uptime.js";
 import { runScheduled } from "./scheduled.js";
 import { handleBadge } from "./badge.js";
 import { withSecurityHeaders } from "./headers.js";
@@ -91,7 +92,7 @@ async function handleRequest(request, env) {
       if (method !== "GET" && method !== "HEAD") return notAllowed();
       const refresh = url.searchParams.get("refresh") === "1";
       const payload = await getStatus({ refresh });
-      return jsonResponse(payload, method);
+      return jsonResponse(decorateStatus(payload, await currentLockouts(env)), method);
     }
 
     if (path === "/api/uptime") {
@@ -130,7 +131,13 @@ async function handleRequest(request, env) {
         return handleAdminUsers(request, env, auth);
       }
       if (path === "/api/admin/maintenance" || path.startsWith("/api/admin/maintenance/")) {
-        return handleAdminMaintenance(request, env, auth);
+        const res = await handleAdminMaintenance(request, env, auth);
+        if (method !== "GET" && method !== "HEAD" && res.ok) {
+          // Open/close the lockout incident right away instead of waiting for the cron.
+          await syncLockoutIncidents(env);
+          resetUptimeCache();
+        }
+        return res;
       }
       if (path.startsWith("/api/admin")) {
         return handleAdminApi(request, env, auth);

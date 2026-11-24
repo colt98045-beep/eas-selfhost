@@ -5,6 +5,7 @@
 // Reads are cached because the data only changes every 5 minutes.
 // Nothing here passes or weakens the US Turnstile gate: "gated" counts as up.
 import { buildStatus, CHECKS, formatEt } from "./status.js";
+import { currentLockouts, decodeLockoutLabel, isLockoutCheckId, SITE_NAMES } from "./lockout.js";
 
 export const UPTIME_CRON = "*/5 * * * *";
 export const PRUNE_CRON = "15 9 * * *";
@@ -70,6 +71,7 @@ export function flattenStatus(payload) {
       if (!CHECK_IDS.has(check.id)) continue;
       rows.push({
         id: check.id,
+        group: group.id,
         state: check.state,
         status: typeof check.status === "number" ? check.status : null,
         latency_ms: typeof check.latency_ms === "number" ? Math.max(0, Math.round(check.latency_ms)) : 0,
@@ -81,10 +83,26 @@ export function flattenStatus(payload) {
 }
 
 // Build the D1 statements for one sample run. Exported for tests.
-export function sampleStatements(db, rows, openIds, now) {
+// Checks of a locked group (maintenance lockout) are recorded as "locked": the
+// hour row notes the state but adds no samples, so lockout time is neither
+// uptime nor downtime, and no health-check incident is opened or changed.
+// The lockout itself is tracked as a lockout incident (src/lockout.js).
+export function sampleStatements(db, rows, openIds, now, lockedGroups = new Set()) {
   const hour = hourFloor(now);
   const out = [];
   for (const row of rows) {
+    if (lockedGroups.has(row.group)) {
+      out.push(
+        db
+          .prepare(
+            `INSERT INTO uptime_hourly (hour_ts, check_id, samples, up, gated, down, latency_sum, latency_max, last_state, last_status)
+             VALUES (?, ?, 0, 0, 0, 0, 0, 0, 'locked', ?)
+             ON CONFLICT(hour_ts, check_id) DO UPDATE SET last_state = 'locked', last_status = excluded.last_status`,
+          )
+          .bind(hour, row.id, row.status),
+      );
+      continue;
+    }
     const up = countsAsUp(row.state) ? 1 : 0;
     const gated = row.state === "gated" ? 1 : 0;
     const down = up ? 0 : 1;
@@ -137,10 +155,12 @@ export async function recordUptime(env, { fetcher = fetch, now = Date.now() } = 
     const payload = await buildStatus({ fetcher, now: new Date(now) });
     const rows = flattenStatus(payload);
     const open = await openIncidentIds(env.ACCESS_LOG);
-    const statements = sampleStatements(env.ACCESS_LOG, rows, open, now);
+    const locks = await currentLockouts(env, now);
+    const locked = new Set(Object.keys(locks).filter((site) => locks[site]));
+    const statements = sampleStatements(env.ACCESS_LOG, rows, open, now, locked);
     if (statements.length) await env.ACCESS_LOG.batch(statements);
     resetUptimeCache();
-    return { ok: true, samples: rows.length, overall: payload.overall };
+    return { ok: true, samples: rows.length, overall: payload.overall, locked: [...locked] };
   } catch (err) {
     return { ok: false, reason: String((err && err.message) || err).slice(0, 200) };
   }
@@ -233,7 +253,32 @@ export function summarize(hourly, incidents, now = Date.now()) {
   const incidentList = incidents.map((row) => {
     const end = row.ended_at == null ? null : Number(row.ended_at);
     const start = Number(row.started_at);
+    if (isLockoutCheckId(row.check_id)) {
+      const site = row.check_id.slice("lockout:".length);
+      const lock = decodeLockoutLabel(row.label);
+      return {
+        id: row.id,
+        kind: "lockout",
+        site,
+        check_id: row.check_id,
+        check: `${SITE_NAMES[site] || site} · Lockout`,
+        ongoing: end == null,
+        started_at: formatEt(new Date(start)),
+        ended_at: end == null ? null : formatEt(new Date(end)),
+        duration: formatDuration((end == null ? now : end) - start),
+        label: lock.reason_label,
+        reason: lock.reason,
+        reason_label: lock.reason_label,
+        icon: lock.icon,
+        color: lock.color,
+        message: lock.message,
+        scheduled: lock.scheduled,
+        status: null,
+        samples: 1,
+      };
+    }
     return {
+      kind: "outage",
       id: row.id,
       check_id: row.check_id,
       check: names.get(row.check_id) || row.check_id,
@@ -257,6 +302,7 @@ export function summarize(hourly, incidents, now = Date.now()) {
     checks,
     incidents: incidentList,
     open_incidents: incidentList.filter((i) => i.ongoing).length,
+    open_lockouts: incidentList.filter((i) => i.ongoing && i.kind === "lockout").length,
   };
 }
 
