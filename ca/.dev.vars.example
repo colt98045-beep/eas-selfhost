@@ -1,0 +1,2 @@
+# Copy to .dev.vars for `wrangler dev`. Never commit .dev.vars.
+ACCESS_LOG_SALT=change-me-to-a-long-random-string

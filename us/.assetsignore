@@ -1,0 +1,5 @@
+# Only index.html, manifest.json and sw.js are published as static assets.
+*
+!index.html
+!manifest.json
+!sw.js

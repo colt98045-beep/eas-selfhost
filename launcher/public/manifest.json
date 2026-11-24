@@ -1,0 +1,18 @@
+{
+  "name": "EAS Launcher",
+  "short_name": "EAS",
+  "description": "Launcher, live status and uptime for the EAS Repository US and Canada sites.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#070b14",
+  "theme_color": "#0f1623",
+  "icons": [
+    { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Status", "url": "/status" },
+    { "name": "Admin", "url": "/admin" }
+  ]
+}

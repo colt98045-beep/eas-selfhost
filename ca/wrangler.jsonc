@@ -1,0 +1,23 @@
+{
+  // Hosted Canada instance (eas-repository-ca.your-subdomain.workers.dev).
+  // Static files come from the repo root; .assetsignore publishes only the web app.
+  "name": "eas-repository-ca",
+  "main": "src/index.js",
+  "compatibility_date": "2026-11-19",
+  "observability": { "enabled": true },
+  "d1_databases": [
+    {
+      "binding": "ACCESS_LOG",
+      "database_name": "eas-access-log",
+      "database_id": "REPLACE_WITH_D1_DATABASE_ID"
+    }
+  ],
+  "assets": {
+    "directory": ".",
+    "binding": "ASSETS",
+    "html_handling": "auto-trailing-slash",
+    "not_found_handling": "none",
+    "run_worker_first": true
+  }
+  // Secret, never in this file: ACCESS_LOG_SALT
+}

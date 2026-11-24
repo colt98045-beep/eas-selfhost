@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<!--
+  EAS Repository - https://github.com/your-github-user/eas-repository
+  Copyright 2026 The EAS Authors. Licensed under the Apache License, Version 2.0.
+  See LICENSE and NOTICE in the repository for details.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>EAS Repository</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#ef4444">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+  :root { --bg:#070b14; --surface:#0f1623; --surface-2:#1a2332; --border:rgba(255,255,255,.08); --text:#f1f5f9; --muted:#94a3b8; --accent:#ef4444; --amber:#f59e0b; --radius:12px; }
+  body.theme-light { --bg:#f8fafc; --surface:#fff; --surface-2:#f1f5f9; --border:#e2e8f0; --text:#0f172a; --muted:#64748b; --accent:#dc2626; }
+  body.theme-midnight { --bg:#020617; --surface:#0f172a; --surface-2:#1e293b; --border:#334155; --text:#e2e8f0; --accent:#38bdf8; }
+  body.theme-forest { --bg:#052e16; --surface:#14532d; --surface-2:#166534; --border:#15803d; --text:#dcfce7; --accent:#4ade80; }
+  body.theme-amber { --bg:#1c1917; --surface:#292524; --surface-2:#44403c; --border:#57534e; --text:#fafaf9; --accent:#f59e0b; }
+  body.theme-purple { --bg:#1e1b4b; --surface:#312e81; --surface-2:#3730a3; --border:#4f46e5; --text:#e0e7ff; --accent:#c084fc; }
+  body.theme-ocean { --bg:#0c1929; --surface:#132f4c; --surface-2:#1e4976; --border:#2196f3; --text:#e3f2fd; --accent:#29b6f6; }
+  body.theme-sunset { --bg:#1a0f0a; --surface:#2d1b14; --surface-2:#4a2c20; --border:#ff6b35; --text:#fff3e0; --accent:#ff8a50; }
+  body.theme-neon { --bg:#0a0a12; --surface:#12121f; --surface-2:#1e1e30; --border:#ff00ff; --text:#f0f0ff; --accent:#00ffff; }
+  body.theme-slate { --bg:#0f1419; --surface:#1c252e; --surface-2:#2a3642; --border:#64748b; --text:#e2e8f0; --accent:#94a3b8; }
+  body.theme-hacker { --bg:#000; --surface:#050505; --surface-2:#0a0a0a; --border:#0f0; --text:#0f0; --muted:#0a0; --accent:#0f0; font-family:"Share Tech Mono",monospace; }
+  body.theme-hacker::after { content:""; position:fixed; inset:0; background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,255,0,.03) 3px); pointer-events:none; z-index:9998; }
+  body.theme-rwb { --bg:#000; --surface:#120000; --surface-2:#220000; --border:#f00; --text:#fff; --muted:#f88; --accent:#f00; }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:Inter,system-ui,sans-serif; background:var(--bg); color:var(--text); transition:background .3s,color .3s; }
+  header { background:rgba(15,22,35,.85); backdrop-filter:blur(12px); border-bottom:1px solid var(--border); padding:16px 24px; display:flex; justify-content:space-between; align-items:center; position:sticky; top:0; z-index:40; }
+  .brand h1 { margin:0; font-size:1.2rem; font-weight:700; }
+  .brand h1 span { color:var(--accent); }
+  .header-meta { display:flex; align-items:center; gap:10px; }
+  .badge { background:var(--surface-2); border:1px solid var(--border); padding:4px 12px; border-radius:999px; font-weight:600; }
+  .badge.hot { background:var(--accent); color:#fff; animation:pulse 1.8s infinite; }
+  @keyframes pulse { 50%{transform:scale(1.06)} }
+  .icon-btn { background:transparent; border:1px solid var(--border); width:36px; height:36px; border-radius:10px; color:var(--text); cursor:pointer; transition:.15s; }
+  .icon-btn:hover { background:var(--surface-2); }
+  .clocks { background:var(--surface); border-bottom:1px solid var(--border); padding:10px 24px; display:flex; gap:24px; justify-content:center; flex-wrap:wrap; }
+  .clock { text-align:center; }
+  .clock.local { outline:1px solid var(--accent); border-radius:8px; padding:2px 8px; }
+  .clock .label { font-size:.62rem; font-weight:600; letter-spacing:.06em; color:var(--muted); text-transform:uppercase; }
+  .clock .time { font-size:1.1rem; font-weight:600; font-variant-numeric:tabular-nums; }
+  .tabs { background:var(--surface); border-bottom:1px solid var(--border); padding:0 24px; display:flex; flex-wrap:wrap; }
+  .tab { background:none; border:none; padding:13px 16px; color:var(--muted); cursor:pointer; font-weight:500; border-bottom:2px solid transparent; transition:.15s; }
+  .tab.active { color:var(--text); border-bottom-color:var(--accent); }
+  .controls { background:var(--surface); padding:12px 24px; display:flex; gap:8px; flex-wrap:wrap; align-items:center; border-bottom:1px solid var(--border); }
+  .chips { display:flex; gap:6px; flex-wrap:wrap; }
+  .chip { background:var(--surface-2); border:1px solid var(--border); padding:4px 10px; border-radius:999px; font-size:.78rem; cursor:pointer; }
+  .chip.on { background:var(--accent); color:#fff; border-color:var(--accent); }
+  input,select,button { font-family:inherit; border-radius:8px; border:1px solid var(--border); background:var(--surface-2); color:var(--text); padding:7px 12px; }
+  button { cursor:pointer; font-weight:500; }
+  button.primary { background:var(--accent); color:#fff; border-color:var(--accent); }
+  button.test { background:#7c3aed; color:#fff; border-color:#7c3aed; }
+  #main { max-width:1120px; margin:0 auto; padding:20px; }
+  #main.compact .alert { padding:8px 12px; margin-bottom:6px; }
+  .alert { background:var(--surface); border:1px solid var(--border); border-left:4px solid var(--accent); border-radius:var(--radius); padding:15px 18px; margin-bottom:10px; position:relative; cursor:pointer; animation:slideIn .3s ease-out; transition:transform .2s,box-shadow .2s; }
+  .alert:hover { transform:translateY(-2px); box-shadow:0 8px 24px rgba(0,0,0,.25); }
+  @keyframes slideIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:none} }
+  .alert.noaa { border-left-color:#0ea5e9; }
+  .alert.extreme { border-left-color:#ff1744; background:rgba(255,23,68,.06); }
+  .alert.pinned { box-shadow:0 0 0 1px var(--amber); }
+  .alert.myarea { outline:2px solid #22c55e; }
+  .pin { position:absolute; top:10px; right:10px; background:none; border:none; color:var(--muted); cursor:pointer; font-size:1.15rem; }
+  .pin.on { color:var(--amber); }
+  .source-pill { font-size:.68rem; font-weight:600; padding:2px 7px; border-radius:999px; margin-left:6px; }
+  .source-pill.noaa { background:#0ea5e9; color:#fff; }
+  .source-pill.geas { background:#334155; color:#fff; }
+  .meta { font-size:.82rem; color:var(--muted); margin:4px 0; }
+  audio { width:100%; height:32px; margin-top:8px; }
+  .link-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:12px; }
+  .link-card { display:block; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:18px; text-decoration:none; color:var(--text); transition:.2s; }
+  .link-card:hover { transform:translateY(-3px); border-color:var(--accent); }
+  .link-card span { color:var(--muted); font-size:.85rem; }
+  #radar { text-align:center; }
+  #radar img { width:100%; max-width:960px; border-radius:14px; box-shadow:0 8px 32px rgba(0,0,0,.35); }
+  .stats-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:12px; margin-bottom:16px; }
+  .stat-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:14px; }
+  .stat-card .v { font-size:1.5rem; font-weight:700; }
+  .bar { height:6px; background:var(--surface-2); border-radius:3px; margin-top:4px; overflow:hidden; }
+  .bar > div { height:100%; background:var(--accent); }
+  .empty { text-align:center; padding:50px 20px; color:var(--muted); }
+  .toast { position:fixed; bottom:20px; right:20px; background:var(--surface); border:1px solid var(--accent); padding:12px 16px; border-radius:10px; z-index:1000; box-shadow:0 6px 20px rgba(0,0,0,.3); }
+  .toast.local { border-color:#22c55e; }
+  .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.7); backdrop-filter:blur(4px); z-index:100; align-items:center; justify-content:center; }
+  .modal-overlay.open { display:flex; }
+  .modal { background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:22px; width:92%; max-width:500px; max-height:88vh; overflow:auto; }
+  .setting-row { display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid var(--border); gap:10px; }
+  .theme-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:6px; margin-top:6px; }
+  .swatch { height:32px; border-radius:6px; cursor:pointer; border:2px solid transparent; }
+  .swatch.on { border-color:var(--text); }
+  #detail { display:none; }
+  .back { margin-bottom:12px; }
+  #loginOverlay { position:fixed; inset:0; background:var(--bg); z-index:200; display:flex; align-items:center; justify-content:center; }
+  #loginBox { background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:36px; width:90%; max-width:380px; text-align:center; }
+  #loginBox input { width:100%; padding:12px; margin:10px 0; }
+  .jump { position:fixed; bottom:18px; left:50%; transform:translateX(-50%); background:var(--accent); color:#fff; border:none; padding:8px 16px; border-radius:999px; display:none; cursor:pointer; z-index:60; }
+  #mapContainer { height:500px; background:#1a2332; }
+  .site-footer { max-width:1100px; margin:24px auto 0; padding:16px 24px 32px; color:var(--muted); font-size:.75rem; text-align:center; line-height:1.6; }
+  .site-footer a { color:inherit; }
+  .login-privacy { display:block; margin-top:12px; font-size:.8rem; color:var(--muted,#94a3b8); }
+</style>
+</head>
+<body>
+<script>
+(function () {
+  var API = "https://eas-launcher.your-subdomain.workers.dev/api/maintenance?site=us";
+  var REFRESH_MS = 15000;
+  function escapeHtml(value) {
+    return String(value).replace(/[&<>"']/g, function (ch) {
+      return ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[ch];
+    });
+  }
+  function ensureStyle() {
+    if (document.getElementById("eas-maint-style")) return;
+    var style = document.createElement("style");
+    style.id = "eas-maint-style";
+    style.textContent = "#eas-maint-lock{position:fixed;inset:0;z-index:10000;display:grid;place-items:center;background:#070b14;color:#f1f5f9;font-family:Inter,system-ui,sans-serif;padding:24px}#eas-maint-lock main{max-width:34rem;width:100%;background:#0f1623;border:1px solid rgba(255,255,255,.08);border-top:4px solid #f59e0b;border-radius:12px;padding:28px 24px;text-align:center}#eas-maint-lock .kicker{margin:0 0 8px;font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#f59e0b}#eas-maint-lock h1{margin:0 0 10px;font-size:1.4rem}#eas-maint-lock p{margin:0 0 10px;color:#94a3b8;white-space:pre-wrap}#eas-maint-lock p.eta{color:#f1f5f9;font-weight:600}#eas-maint-lock button{margin-top:12px;font:inherit;font-weight:500;border-radius:8px;border:1px solid rgba(255,255,255,.2);background:#1a2332;color:#f1f5f9;padding:9px 14px;cursor:pointer}";
+    document.head.appendChild(style);
+  }
+  function hide() {
+    var el = document.getElementById("eas-maint-lock");
+    if (el && el.parentNode) el.parentNode.removeChild(el);
+    document.documentElement.style.overflow = "";
+  }
+  function show(data) {
+    ensureStyle();
+    var el = document.getElementById("eas-maint-lock");
+    if (!el) {
+      el = document.createElement("div");
+      el.id = "eas-maint-lock";
+      el.setAttribute("role", "alertdialog");
+      el.setAttribute("aria-label", "Maintenance");
+      document.body.appendChild(el);
+    }
+    var message = data.message ? escapeHtml(data.message) : "We&apos;re making updates. Please check back shortly.";
+    var eta = data.eta_et ? '<p class="eta">Expected back: ' + escapeHtml(data.eta_et) + "</p>" : "";
+    el.innerHTML = "<main><p class='kicker'>Maintenance</p><h1>This site is temporarily down</h1><p>" + message + "</p>" + eta + "<button type='button' id='eas-maint-retry'>Check again</button></main>";
+    var btn = document.getElementById("eas-maint-retry");
+    if (btn) btn.addEventListener("click", tick);
+    document.documentElement.style.overflow = "hidden";
+  }
+  function tick() {
+    fetch(API, { credentials: "omit", cache: "no-store" })
+      .then(function (res) { return res.ok ? res.json() : null; })
+      .then(function (data) {
+        if (data && data.on === true) show(data);
+        else hide();
+      })
+      .catch(function () { hide(); });
+  }
+  try {
+    tick();
+    setInterval(tick, REFRESH_MS);
+  } catch (err) {}
+})();
+</script>
+<div id="loginOverlay">
+  <div id="loginBox">
+    <h2>EAS Repository</h2>
+    <p style="color:var(--muted);margin:0 0 12px">Password required</p>
+    <input type="password" id="loginPass" placeholder="Password" autofocus>
+    <div id="loginError" style="color:#f87171;font-size:.85rem;min-height:1.2em"></div>
+    <a class="login-privacy" href="/privacy">Privacy policy</a>
+    <button class="primary" style="width:100%;padding:12px" onclick="tryLogin()">Unlock</button>
+  </div>
+</div>
+<header>
+  <div class="brand"><h1>EAS <span>REPOSITORY</span></h1></div>
+  <div class="header-meta">
+    <div class="badge" id="badge">0</div>
+    <span id="status" style="color:var(--muted);font-size:.85rem"></span>
+    <button class="icon-btn" id="fsBtn">⛶</button>
+    <button class="icon-btn" id="setBtn">⚙</button>
+  </div>
+</header>
+<div class="clocks" id="clocks"></div>
+<div class="tabs">
+  <button class="tab active" data-t="alerts">Active</button>
+  <button class="tab" data-t="history">History</button>
+  <button class="tab" data-t="map">Map</button>
+  <button class="tab" data-t="radar">Radar</button>
+  <button class="tab" data-t="links">Links</button>
+  <button class="tab" data-t="stats">Stats</button>
+</div>
+<div class="controls" id="ctrl">
+  <input id="qType" placeholder="Event code">
+  <input id="qSearch" placeholder="Search text">
+  <select id="sourceFilter">
+    <option value="all">All sources</option>
+    <option value="globaleas">GlobalEAS only</option>
+    <option value="noaa">NOAA / CAP only</option>
+  </select>
+  <div class="chips">
+    <span class="chip" data-c="TOR">TOR</span>
+    <span class="chip" data-c="SVR">SVR</span>
+    <span class="chip" data-c="FFW">FFW</span>
+    <span class="chip" data-c="RWT">RWT</span>
+    <span class="chip" data-c="NPT">NPT</span>
+  </div>
+  <button id="ntBtn">Non-test</button>
+  <button class="primary" onclick="load()">Refresh</button>
+  <button class="test" onclick="injectTest()">⚠ Test System</button>
+  <button onclick="exportJSON()">Export</button>
+</div>
+<div id="main">
+  <div id="alerts"></div>
+  <div id="history" style="display:none">
+    <div style="padding:10px 0;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+      <label>Timeline: <input type="range" id="timeline" min="0" max="100" value="100" style="width:200px"></label>
+      <span id="timelineLabel">Now</span>
+      <button onclick="resetTimeline()">Reset</button>
+    </div>
+    <div id="historyList"></div>
+  </div>
+  <div id="map" style="display:none">
+    <h3 style="color:var(--muted);margin-top:0">Alert Map (approximate)</h3>
+    <div id="mapContainer" style="height:500px;border-radius:12px;overflow:hidden"></div>
+    <p style="font-size:.8rem;color:var(--muted)">Markers are approximate centroids. Click for details.</p>
+  </div>
+  <div id="radar" style="display:none">
+    <h3 style="color:var(--muted);margin-top:0">NWS National Radar Loop</h3>
+    <img id="radarImg" src="https://radar.weather.gov/ridge/standard/CONUS_loop.gif" alt="Radar">
+    <p style="font-size:.8rem;color:var(--muted)">radar.weather.gov · CONUS</p>
+  </div>
+  <div id="links" style="display:none">
+    <h2 style="margin-top:0">Useful Links</h2>
+    <div class="link-grid">
+      <a href="https://alerts.globaleas.org" target="_blank" rel="noopener noreferrer" class="link-card"><strong>GlobalEAS CAR</strong><br><span>Central Alert Repository</span></a>
+      <a href="https://app.weatherfront.com/" target="_blank" rel="noopener noreferrer" class="link-card"><strong>WeatherFront</strong><br><span>WeatherFront App</span></a>
+      <a href="https://www.weather.gov" target="_blank" rel="noopener noreferrer" class="link-card"><strong>NWS</strong><br><span>National Weather Service</span></a>
+      <a href="https://www.nhc.noaa.gov" target="_blank" rel="noopener noreferrer" class="link-card"><strong>NHC</strong><br><span>National Hurricane Center</span></a>
+      <a href="https://www.spc.noaa.gov" target="_blank" rel="noopener noreferrer" class="link-card"><strong>SPC</strong><br><span>Storm Prediction Center</span></a>
+      <a href="https://www.cpc.ncep.noaa.gov" target="_blank" rel="noopener noreferrer" class="link-card"><strong>CPC</strong><br><span>Climate Prediction Center</span></a>
+      <a href="https://www.wpc.ncep.noaa.gov" target="_blank" rel="noopener noreferrer" class="link-card"><strong>WPC</strong><br><span>Weather Prediction Center</span></a>
+      <a href="https://www.swpc.noaa.gov" target="_blank" rel="noopener noreferrer" class="link-card"><strong>SWPC</strong><br><span>Space Weather Prediction Center</span></a>
+      <a href="https://radar.weather.gov" target="_blank" rel="noopener noreferrer" class="link-card"><strong>NWS Radar</strong><br><span>Official radar site</span></a>
+      <a href="https://www.wunderground.com" target="_blank" rel="noopener noreferrer" class="link-card"><strong>Weather Underground</strong><br><span>Forecasts & maps</span></a>
+    </div>
+  </div>
+  <div id="stats" style="display:none"></div>
+  <div id="detail">
+    <button class="back" onclick="showList()">← Back</button>
+    <div id="detailContent" class="alert" style="cursor:default"></div>
+  </div>
+</div>
+<footer class="site-footer">
+  Alert data: <a href="https://alerts.globaleas.org" target="_blank" rel="noopener noreferrer">GWES Central Alert Repository</a> (Global Weather &amp; EAS Society, LLC) and NOAA/NWS.<br>
+  EAS Repository is an independent project and is not affiliated with or endorsed by GWES, NOAA, or the National Weather Service.<br>
+  <a href="/privacy">Privacy policy</a>
+</footer>
+<button class="jump" id="jumpBtn" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑ Top</button>
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <h3 style="margin-top:0">Settings</h3>
+    <div class="setting-row"><span>My counties (FIPS)</span></div>
+    <input id="myFips" placeholder="12103,12086,12057" style="width:100%;margin-bottom:10px">
+    <div class="setting-row"><span>Compact mode</span><button id="compT">Off</button></div>
+    <div class="setting-row"><span>Sound</span><button id="sndT">Off</button></div>
+    <div class="setting-row"><span>Desktop notifications</span><button id="notifToggle" onclick="toggleNotif()">Off</button></div>
+    <div class="setting-row"><span>Auto-refresh</span>
+      <select id="refSel"><option value="15">15s</option><option value="30" selected>30s</option><option value="60">60s</option><option value="0">Off</option></select>
+    </div>
+    <div class="setting-row"><span>Mute 5 minutes</span><button id="muteBtn">Mute</button></div>
+    <div class="setting-row"><span>Change password</span><button onclick="changePassword()">Change</button></div>
+    <div class="setting-row" style="flex-direction:column;align-items:stretch">
+      <span>Theme</span>
+      <div class="theme-grid">
+        <div class="swatch on" data-th="" style="background:#070b14"></div>
+        <div class="swatch" data-th="theme-light" style="background:#f8fafc"></div>
+        <div class="swatch" data-th="theme-midnight" style="background:#020617"></div>
+        <div class="swatch" data-th="theme-forest" style="background:#052e16"></div>
+        <div class="swatch" data-th="theme-amber" style="background:#1c1917"></div>
+        <div class="swatch" data-th="theme-purple" style="background:#1e1b4b"></div>
+        <div class="swatch" data-th="theme-ocean" style="background:#0c1929"></div>
+        <div class="swatch" data-th="theme-sunset" style="background:#1a0f0a"></div>
+        <div class="swatch" data-th="theme-neon" style="background:#0a0a12"></div>
+        <div class="swatch" data-th="theme-slate" style="background:#0f1419"></div>
+        <div class="swatch" data-th="theme-hacker" style="background:#000;border:1px solid #0f0"></div>
+        <div class="swatch" data-th="theme-rwb" style="background:#000;border:1px solid #f00"></div>
+      </div>
+    </div>
+    <div class="setting-row"><span>Clear history</span><button onclick="hist=[];localStorage.removeItem('easHist');renderHistory();toast('History cleared')">Clear</button></div>
+    <div class="setting-row" style="flex-direction:column;align-items:stretch">
+      <span>Notification rules</span>
+      <textarea id="rules" placeholder="One rule per line: TOR|SVR|FFW in my area&#10;Any extreme" style="width:100%;height:60px;margin-top:4px"></textarea>
+      <small style="color:var(--muted)">Simple keywords. Matches event or severity. "in my area" checks FIPS.</small>
+    </div>
+    <div class="setting-row"><span>Export settings pack</span><button onclick="exportSettings()">Export</button></div>
+    <div class="setting-row"><span>Import settings pack</span><button onclick="document.getElementById('importFile').click()">Import</button>
+      <input type="file" id="importFile" accept=".json" style="display:none" onchange="importSettings(this)">
+    </div>
+    <div class="setting-row"><span>Log out</span><button onclick="logout()">Log out</button></div>
+    <button class="primary" style="width:100%;margin-top:14px" onclick="saveSettings();closeM()">Save & Close</button>
+  </div>
+</div>
+<script>
+const DEFAULT_PASS = "eas";
+let storedPass = localStorage.getItem("easPass") || DEFAULT_PASS;
+let myFips = new Set((localStorage.getItem("myFips") || "").split(",").map(s => s.trim()).filter(Boolean));
+let alerts = [], hist = JSON.parse(localStorage.getItem("easHist") || "[]"), pins = new Set(JSON.parse(localStorage.getItem("easPins") || "[]"));
+let sound = localStorage.getItem("snd") === "1", comp = localStorage.getItem("comp") === "1";
+let notifEnabled = localStorage.getItem("notif") === "1";
+let refRate = +localStorage.getItem("ref") || 30, muteUntil = 0, timer, seen = new Set(), types = {}, start = Date.now(), refreshes = 0, notifiedLocal = new Set();
+if ("Notification" in window && Notification.permission === "default") Notification.requestPermission();
+function notify(title, body) {
+  if (!notifEnabled || !("Notification" in window) || Notification.permission !== "granted") return;
+  new Notification(title, { body: (body || "").slice(0, 180), tag: "eas-alert" });
+}
+function toggleNotif() {
+  notifEnabled = !notifEnabled;
+  localStorage.setItem("notif", notifEnabled ? "1" : "0");
+  document.getElementById("notifToggle").textContent = notifEnabled ? "On" : "Off";
+  if (notifEnabled && Notification.permission === "default") Notification.requestPermission();
+}
+function tryLogin() {
+  if (document.getElementById("loginPass").value === storedPass) {
+    sessionStorage.setItem("easAuth", "1");
+    document.getElementById("loginOverlay").style.display = "none";
+    startApp();
+  } else document.getElementById("loginError").textContent = "Incorrect password";
+}
+function logout() { sessionStorage.removeItem("easAuth"); location.reload(); }
+function changePassword() {
+  const n = prompt("New password (min 3 characters):");
+  if (n && n.length >= 3) { storedPass = n; localStorage.setItem("easPass", n); toast("Password updated"); }
+}
+document.getElementById("loginPass").onkeydown = e => { if (e.key === "Enter") tryLogin(); };
+if (sessionStorage.getItem("easAuth") === "1") document.getElementById("loginOverlay").style.display = "none";
+function clocks() {
+  const now = new Date(), localTZ = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const zones = [["Eastern","America/New_York"],["Central","America/Chicago"],["Mountain","America/Denver"],["Pacific","America/Los_Angeles"],["Alaska","America/Anchorage"],["Hawaii","Pacific/Honolulu"]];
+  document.getElementById("clocks").innerHTML = zones.map(([n,tz]) => `<div class="clock ${tz===localTZ?"local":""}"><div class="label">${n}${tz===localTZ?" ★":""}</div><div class="time">${now.toLocaleTimeString("en-GB",{timeZone:tz,hour:"2-digit",minute:"2-digit",second:"2-digit",hour12:false})}</div></div>`).join("");
+}
+setInterval(clocks, 1000); clocks();
+function toast(m, local = false) {
+  const t = document.createElement("div");
+  t.className = "toast" + (local ? " local" : "");
+  t.textContent = m;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 3800);
+}
+function checkLocal(list) {
+  if (!myFips.size) return;
+  list.forEach(a => {
+    if (a.severity === "TEST") return;
+    if ((a.fipsCodes || []).some(f => myFips.has(f)) && !notifiedLocal.has(a.id)) {
+      notifiedLocal.add(a.id);
+      toast("LOCAL ALERT: " + a.type, true);
+      notify("Local Alert: " + a.type, a.translation || "");
+      if (sound && Date.now() > muteUntil) try { new Audio("data:audio/wav;base64,UklGRl9vT19XQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQ").play(); } catch(e){}
+    }
+  });
+}
+async function loadNoaa() {
+  try {
+    const text = await (await fetch("/api/noaa")).text();
+    const xml = new DOMParser().parseFromString(text, "text/xml");
+    return [...xml.querySelectorAll("entry")].map(e => ({
+      id: "noaa-" + (e.querySelector("id")?.textContent || Math.random()),
+      type: (e.querySelector("cap\\:event, event")?.textContent || "NOAA").slice(0, 8).toUpperCase(),
+      severity: (e.querySelector("cap\\:severity, severity")?.textContent || "UNKNOWN").toUpperCase(),
+      originator: "NOAA",
+      callsign: "NWS",
+      translation: e.querySelector("summary")?.textContent || e.querySelector("title")?.textContent || "",
+      source: "noaa",
+      fipsCodes: [],
+      audioUrl: null
+    })).filter(a => a.translation);
+  } catch { return []; }
+}
+async function load() {
+  try {
+    const geas = await (await fetch("/api/active")).json();
+    geas.forEach(a => a.source = "globaleas");
+    const noaa = await loadNoaa();
+    const tests = alerts.filter(a => String(a.id).startsWith("999"));
+    const combined = [...tests, ...geas, ...noaa];
+    combined.forEach(a => {
+      const key = a.id || (a.type + (a.translation || "").slice(0, 40));
+      if (!seen.has(key) && a.severity !== "TEST" && seen.size > 0) {
+        notify((a.type || "ALERT") + " · " + (a.severity || ""), a.translation || a.callsign || "New alert");
+        toast("New: " + a.type);
+        if (sound && Date.now() > muteUntil) try { new Audio("data:audio/wav;base64,UklGRl9vT19XQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQ").play(); } catch(e){}
+      }
+      seen.add(key);
+      types[a.type] = (types[a.type] || 0) + 1;
+    });
+    alerts = combined;
+    refreshes++;
+    geas.forEach(a => { if (!hist.find(h => h.id === a.id)) { a.ts = Date.now(); hist.unshift(a); } });
+    hist = hist.slice(0, 200);
+    localStorage.setItem("easHist", JSON.stringify(hist));
+    render();
+    renderHistory();
+    document.getElementById("status").textContent = new Date().toLocaleTimeString();
+  } catch { document.getElementById("status").textContent = "Offline"; }
+}
+function render() {
+  const tf = document.getElementById("qType").value.trim().toUpperCase();
+  const search = document.getElementById("qSearch").value.toLowerCase();
+  const srcF = document.getElementById("sourceFilter").value;
+  const nt = document.getElementById("ntBtn").classList.contains("on");
+  let f = alerts.filter(a => {
+    if (srcF === "globaleas" && a.source === "noaa") return false;
+    if (srcF === "noaa" && a.source !== "noaa") return false;
+    if (tf && !(a.type || "").includes(tf)) return false;
+    if (nt && a.severity === "TEST") return false;
+    if (search && !(a.translation || "").toLowerCase().includes(search)) return false;
+    return true;
+  });
+  f.sort((a, b) => (pins.has(a.id) ? -1 : 1) - (pins.has(b.id) ? -1 : 1));
+  document.getElementById("badge").textContent = f.length;
+  document.getElementById("badge").className = f.some(a => a.severity !== "TEST") ? "badge hot" : "badge";
+  checkLocal(f);
+  document.getElementById("alerts").innerHTML = f.length ? f.map(a => {
+    const mine = (a.fipsCodes || []).some(fc => myFips.has(fc));
+    return `<div class="alert ${a.source === "noaa" ? "noaa" : ""} ${pins.has(a.id) ? "pinned" : ""} ${a.severity === "EXTREME" ? "extreme" : ""} ${mine ? "myarea" : ""}" onclick="openDetail('${a.id}')">
+      <button class="pin ${pins.has(a.id) ? "on" : ""}" onclick="event.stopPropagation();togglePin('${a.id}')">★</button>
+      <strong style="font-size:1.2rem">${a.type || "UNK"}</strong>
+      <span class="source-pill ${a.source === "noaa" ? "noaa" : "geas"}">${a.source === "noaa" ? "NOAA" : "GlobalEAS"}</span>
+      <div class="meta">${a.originator || "—"} · ${a.callsign || "—"} · ${a.severity || ""}</div>
+      <div>${(a.translation || "").slice(0, 220)}</div>
+      ${a.audioUrl ? `<div onclick="event.stopPropagation()"><audio controls preload="none" src="${a.audioUrl}"></audio></div>` : ""}
+    </div>`;
+  }).join("") : `<div class="empty">No matching alerts</div>`;
+  const sec = Math.floor((Date.now() - start) / 1000);
+  const maxT = Math.max(...Object.values(types), 1);
+  document.getElementById("stats").innerHTML = `<div class="stats-grid">
+    <div class="stat-card"><div>Uptime</div><div class="v">${Math.floor(sec/3600)}h ${Math.floor((sec%3600)/60)}m</div></div>
+    <div class="stat-card"><div>Refreshes</div><div class="v">${refreshes}</div></div>
+    <div class="stat-card"><div>Active</div><div class="v">${alerts.length}</div></div>
+    <div class="stat-card"><div>History</div><div class="v">${hist.length}</div></div>
+  </div><h4 style="color:var(--muted);margin:12px 0 8px">Top Event Codes</h4>
+  ${Object.entries(types).sort((a,b)=>b[1]-a[1]).slice(0,8).map(([k,v]) => `<div style="margin:6px 0">${k} (${v})<div class="bar"><div style="width:${(v/maxT)*100}%"></div></div></div>`).join("")}`;
+}
+function openDetail(id, fromHist = false) {
+  const src = fromHist ? hist : alerts;
+  const a = src.find(x => String(x.id) === String(id));
+  if (!a) return;
+  document.getElementById("detailContent").innerHTML = `<h2 style="margin-top:0">${a.type || "UNK"} <span style="background:var(--accent);color:#fff;padding:2px 8px;border-radius:4px;font-size:.75rem">${a.severity || ""}</span></h2>
+    <div class="meta">${a.originator || "—"} · ${a.callsign || "—"}</div>
+    <p style="line-height:1.5">${(a.translation || "").replace(/\n/g, "<br>")}</p>
+    ${a.fipsCodes && a.fipsCodes.length ? `<div class="meta">FIPS: ${a.fipsCodes.join(", ")}</div>` : ""}
+    ${a.protocolHeader ? `<div class="meta"><code>${a.protocolHeader}</code></div>` : ""}
+    ${a.audioUrl ? `<div style="margin-top:12px"><audio controls src="${a.audioUrl}" style="width:100%"></audio></div>` : ""}`;
+  ["alerts","history","radar","links","stats","map"].forEach(i => document.getElementById(i).style.display = "none");
+  document.getElementById("detail").style.display = "block";
+  document.getElementById("ctrl").style.display = "none";
+}
+function showList() {
+  document.getElementById("detail").style.display = "none";
+  document.querySelector(".tab.active").click();
+}
+function togglePin(id) {
+  pins.has(id) ? pins.delete(id) : pins.add(id);
+  localStorage.setItem("easPins", JSON.stringify([...pins]));
+  render();
+}
+function exportJSON() {
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([JSON.stringify(alerts, null, 2)], { type: "application/json" }));
+  a.download = "eas-repository.json";
+  a.click();
+}
+function injectTest() {
+  const test = { id: "999" + Date.now(), type: "TOR", severity: "EXTREME", originator: "TEST", callsign: "SYSTEM", translation: "THIS IS A TEST OF THE EAS REPOSITORY. This is only a test.", source: "globaleas", fipsCodes: ["12103"], audioUrl: null, ts: Date.now() };
+  alerts.unshift(test);
+  toast("⚠ EXTREME TEST injected");
+  notify("TOR · EXTREME", "System test alert");
+  render();
+  document.querySelector('.tab[data-t="alerts"]').click();
+}
+function saveSettings() {
+  myFips = new Set(document.getElementById("myFips").value.split(",").map(s => s.trim()).filter(Boolean));
+  localStorage.setItem("myFips", [...myFips].join(","));
+  toast("Settings saved");
+}
+document.querySelectorAll(".tab").forEach(t => t.onclick = () => {
+  document.querySelectorAll(".tab").forEach(x => x.classList.remove("active"));
+  t.classList.add("active");
+  const id = t.dataset.t;
+  ["alerts","history","radar","links","stats","map"].forEach(x => document.getElementById(x).style.display = x === id ? "block" : "none");
+  document.getElementById("detail").style.display = "none";
+  document.getElementById("ctrl").style.display = id === "alerts" ? "flex" : "none";
+  if (id === "radar") document.getElementById("radarImg").src = "https://radar.weather.gov/ridge/standard/CONUS_loop.gif?" + Date.now();
+  if (id === "history") renderHistory();
+  if (id === "map") { setTimeout(() => { initMap(); updateMap(); if (map) map.invalidateSize(); }, 150); }
+});
+document.getElementById("sourceFilter").onchange = render;
+document.getElementById("qType").oninput = render;
+document.getElementById("qSearch").oninput = render;
+document.getElementById("ntBtn").onclick = function() { this.classList.toggle("on"); render(); };
+document.querySelectorAll(".chip").forEach(c => c.onclick = () => { document.getElementById("qType").value = c.dataset.c; document.querySelectorAll(".chip").forEach(x => x.classList.remove("on")); c.classList.add("on"); render(); });
+const modal = document.getElementById("modal");
+document.getElementById("setBtn").onclick = () => { document.getElementById("myFips").value = [...myFips].join(","); modal.classList.add("open"); };
+function closeM() { modal.classList.remove("open"); }
+modal.onclick = e => { if (e.target === modal) closeM(); };
+document.getElementById("compT").onclick = function() { comp = !comp; document.getElementById("main").classList.toggle("compact", comp); this.textContent = comp ? "On" : "Off"; localStorage.setItem("comp", comp ? "1" : "0"); };
+document.getElementById("sndT").onclick = function() { sound = !sound; this.textContent = sound ? "On" : "Off"; localStorage.setItem("snd", sound ? "1" : "0"); };
+document.getElementById("refSel").onchange = function() { refRate = +this.value; localStorage.setItem("ref", refRate); clearInterval(timer); if (refRate > 0) timer = setInterval(load, refRate * 1000); };
+document.getElementById("muteBtn").onclick = () => { muteUntil = Date.now() + 300000; toast("Muted for 5 minutes"); };
+document.querySelectorAll(".swatch").forEach(s => s.onclick = () => { document.body.className = s.dataset.th; localStorage.setItem("theme", s.dataset.th); document.querySelectorAll(".swatch").forEach(x => x.classList.remove("on")); s.classList.add("on"); });
+document.getElementById("fsBtn").onclick = () => document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen();
+window.onscroll = () => document.getElementById("jumpBtn").style.display = window.scrollY > 400 ? "block" : "none";
+document.addEventListener("keydown", e => {
+  if (e.target.matches("input,select")) return;
+  if (e.key === "f") document.getElementById("fsBtn").click();
+  if (e.key === "r") load();
+  if (e.key === "t") injectTest();
+  if (e.key === "Escape") { closeM(); showList(); }
+});
+function startApp() {
+  document.getElementById("compT").textContent = comp ? "On" : "Off";
+  document.getElementById("sndT").textContent = sound ? "On" : "Off";
+  document.getElementById("notifToggle").textContent = notifEnabled ? "On" : "Off";
+  document.getElementById("refSel").value = refRate;
+  document.getElementById("myFips").value = [...myFips].join(",");
+  const th = localStorage.getItem("theme");
+  if (th) { document.body.className = th; document.querySelector(`.swatch[data-th="${th}"]`)?.classList.add("on"); }
+  if (comp) document.getElementById("main").classList.add("compact");
+  load();
+  if (refRate > 0) timer = setInterval(load, refRate * 1000);
+  setInterval(() => { if (document.getElementById("radar").style.display !== "none") document.getElementById("radarImg").src = "https://radar.weather.gov/ridge/standard/CONUS_loop.gif?" + Date.now(); }, 120000);
+}
+let map, mapMarkers = [];
+function resetTimeline() {
+  const s = document.getElementById("timeline");
+  if (s) { s.value = 100; renderHistory(); }
+}
+function renderHistory() {
+  const slider = document.getElementById("timeline");
+  const label = document.getElementById("timelineLabel");
+  const list = document.getElementById("historyList") || document.getElementById("history");
+  if (!hist.length) { if (list) list.innerHTML = '<div class="empty">No history yet</div>'; return; }
+  const pct = slider ? +slider.value / 100 : 1;
+  const now = Date.now();
+  const oldest = Math.min(...hist.map(h => h.ts || now));
+  const cutoff = oldest + (now - oldest) * pct;
+  if (label) label.textContent = pct >= 0.99 ? "Now" : new Date(cutoff).toLocaleString();
+  const filtered = hist.filter(h => (h.ts || now) <= cutoff);
+  const html = filtered.slice(0, 50).map(a => `<div class="alert" style="cursor:default">
+    <strong>${a.type || a.headline || a.event || "Past alert"}</strong>
+    <div class="meta">${new Date(a.ts || now).toLocaleString()} · ${a.source || ""}</div>
+    <div>${(a.translation || "").slice(0,140)}</div>
+  </div>`).join("") || '<div class="empty">No alerts before this time</div>';
+  if (list) list.innerHTML = html;
+}
+function initMap() {
+  if (map) return;
+  if (typeof L === "undefined") {
+    document.getElementById("mapContainer").innerHTML = '<div style="padding:40px;text-align:center;color:var(--muted)">Map library failed to load. Check your internet connection and refresh.</div>';
+    return;
+  }
+  map = L.map("mapContainer").setView([39.8, -98.5], 4);
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { attribution: "© OpenStreetMap", maxZoom: 18 }).addTo(map);
+  setTimeout(() => map && map.invalidateSize(), 200);
+}
+function updateMap() {
+  if (!map) initMap();
+  if (!map) return;
+  mapMarkers.forEach(m => map.removeLayer(m));
+  mapMarkers = [];
+  if (!alerts.length) {
+    L.marker([39.8, -98.5]).addTo(map).bindPopup("No active alerts to show").openPopup();
+  }
+  alerts.forEach(a => {
+    const lat = 39 + Math.random() * 8 - 4;
+    const lon = -98 + Math.random() * 16 - 8;
+    const m = L.circleMarker([lat, lon], {
+      radius: 9,
+      color: /TOR|SVR|FFW|EXTREME/i.test(a.type || a.severity || "") ? "#ff1744" : "#ef4444",
+      fillColor: "#ef4444",
+      fillOpacity: 0.75,
+      weight: 2
+    }).addTo(map);
+    m.bindPopup(`<strong>${a.type || a.headline || "Alert"}</strong><br>${a.source || ""} · ${a.severity || ""}`);
+    mapMarkers.push(m);
+  });
+  setTimeout(() => map && map.invalidateSize(), 150);
+}
+function exportSettings() {
+  const pack = {
+    myFips: [...myFips],
+    theme: localStorage.getItem("theme") || "",
+    sound, comp, notifEnabled, refRate,
+    rules: document.getElementById("rules")?.value || ""
+  };
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([JSON.stringify(pack, null, 2)], {type:"application/json"}));
+  a.download = "eas-settings.json";
+  a.click();
+}
+function importSettings(input) {
+  const f = input.files[0];
+  if (!f) return;
+  const r = new FileReader();
+  r.onload = e => {
+    try {
+      const pack = JSON.parse(e.target.result);
+      if (pack.myFips) { myFips = new Set(pack.myFips); localStorage.setItem("myFips", pack.myFips.join(",")); }
+      if (pack.theme !== undefined) localStorage.setItem("theme", pack.theme);
+      if (pack.rules && document.getElementById("rules")) document.getElementById("rules").value = pack.rules;
+      toast("Settings imported");
+      location.reload();
+    } catch { toast("Import failed"); }
+  };
+  r.readAsText(f);
+}
+function loadRules() {
+  const r = localStorage.getItem("easRules");
+  if (r && document.getElementById("rules")) document.getElementById("rules").value = r;
+}
+function saveRules() {
+  const el = document.getElementById("rules");
+  if (el) localStorage.setItem("easRules", el.value);
+}
+document.addEventListener("DOMContentLoaded", () => {
+  const s = document.getElementById("timeline");
+  if (s) s.oninput = renderHistory;
+  loadRules();
+  if (document.getElementById("rules")) document.getElementById("rules").onchange = saveRules;
+});
+if (sessionStorage.getItem("easAuth") === "1") startApp();
+</script>
+<script>
+(function () {
+  var API = "https://eas-launcher.your-subdomain.workers.dev/api/announcements?site=us";
+  var STORAGE = "eas-ann-dismissed";
+  var REFRESH_MS = 60000;
+  function escapeHtml(value) {
+    return String(value).replace(/[&<>"']/g, function (ch) {
+      return ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[ch];
+    });
+  }
+  function loadDismissed() {
+    try {
+      var raw = sessionStorage.getItem(STORAGE);
+      var list = raw ? JSON.parse(raw) : [];
+      return Array.isArray(list) ? list.map(String) : [];
+    } catch (err) { return []; }
+  }
+  function saveDismissed(ids) {
+    try { sessionStorage.setItem(STORAGE, JSON.stringify(ids)); } catch (err) {}
+  }
+  function ensureStyle() {
+    if (document.getElementById("eas-ann-style")) return;
+    var style = document.createElement("style");
+    style.id = "eas-ann-style";
+    style.textContent = "#eas-ann-host{position:fixed;top:0;left:0;right:0;z-index:210;display:flex;flex-direction:column}#eas-ann-host:empty{display:none}.eas-ann{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:10px 20px;border-bottom:1px solid rgba(255,255,255,.08);color:#f1f5f9;font-family:Inter,system-ui,sans-serif}.eas-ann.info{background:#0b2a4a}.eas-ann.outage{background:#4a1010}.eas-ann.maintenance{background:#3a2a0a}.eas-ann.resolved{background:#0d2f1c}.eas-ann .eas-ann-kicker{font-size:.68rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;opacity:.8;margin:0 0 2px}.eas-ann .eas-ann-title{margin:0;font-size:.95rem;font-weight:700}.eas-ann .eas-ann-msg{margin:2px 0 0;font-size:.85rem;color:#e2e8f0;white-space:pre-wrap}.eas-ann .eas-ann-when{margin:4px 0 0;font-size:.75rem;color:#cbd5e1}.eas-ann button{flex-shrink:0;background:transparent;border:1px solid rgba(255,255,255,.2);color:inherit;border-radius:8px;padding:4px 8px;cursor:pointer;font:inherit;font-size:.8rem}html{scroll-padding-top:var(--eas-ann-pad,0px)}body{padding-top:var(--eas-ann-pad,0px)}header{top:var(--eas-ann-pad,0px)}";
+    document.head.appendChild(style);
+  }
+  function typeLabel(type) {
+    if (type === "outage") return "Outage";
+    if (type === "maintenance") return "Maintenance";
+    if (type === "resolved") return "Resolved";
+    return "Info";
+  }
+  function whenText(item) {
+    if (item.start_et && item.end_et) return item.start_et + " — " + item.end_et;
+    if (item.start_et) return "From " + item.start_et;
+    if (item.end_et) return "Until " + item.end_et;
+    return "";
+  }
+  function syncPad(host) {
+    document.documentElement.style.setProperty("--eas-ann-pad", (host.offsetHeight || 0) + "px");
+  }
+  function render(host, items, dismissed) {
+    host.innerHTML = "";
+    items.forEach(function (item) {
+      if (!item || dismissed.indexOf(String(item.id)) !== -1) return;
+      var row = document.createElement("div");
+      row.className = "eas-ann " + (item.type || "info");
+      row.setAttribute("role", "status");
+      var when = whenText(item);
+      row.innerHTML = '<div class="eas-ann-body"><p class="eas-ann-kicker">' + escapeHtml(typeLabel(item.type)) + '</p><p class="eas-ann-title">' + escapeHtml(item.title || "") + "</p>" + (item.message ? '<p class="eas-ann-msg">' + escapeHtml(item.message) + "</p>" : "") + (when ? '<p class="eas-ann-when">' + escapeHtml(when) + "</p>" : "") + "</div>";
+      var btn = document.createElement("button");
+      btn.type = "button";
+      btn.setAttribute("aria-label", "Dismiss announcement");
+      btn.textContent = "Dismiss";
+      btn.addEventListener("click", function () {
+        dismissed.push(String(item.id));
+        saveDismissed(dismissed);
+        render(host, items, dismissed);
+      });
+      row.appendChild(btn);
+      host.appendChild(row);
+    });
+    syncPad(host);
+  }
+  try {
+    ensureStyle();
+    var host = document.createElement("div");
+    host.id = "eas-ann-host";
+    document.body.insertBefore(host, document.body.firstChild);
+    var dismissed = loadDismissed();
+    function tick() {
+      fetch(API, { credentials: "omit", cache: "no-store" })
+        .then(function (res) { return res.ok ? res.json() : null; })
+        .then(function (data) {
+          if (!data || !Array.isArray(data.announcements)) return;
+          render(host, data.announcements, dismissed);
+        })
+        .catch(function () {});
+    }
+    tick();
+    setInterval(tick, REFRESH_MS);
+  } catch (err) {}
+})();
+</script>
+</body>
+</html>

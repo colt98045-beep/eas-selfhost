@@ -1,0 +1,34 @@
+name: CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Launcher tests
+        working-directory: launcher
+        run: npm test && node scripts/sync-privacy.mjs --check
+      - name: US config guard and tests
+        working-directory: us
+        run: |
+          node scripts/check-worker-config.mjs
+          for t in tests/*.test.mjs; do node "$t"; done
+      - name: CA tests
+        working-directory: ca
+        run: for t in tests/*.test.mjs; do node "$t"; done
+      - name: Python compile check
+        run: python -m py_compile us/eas_monitor.py ca/eas_monitor.py
+      - name: Wrangler dry-run builds (no credentials)
+        run: |
+          for d in launcher us ca; do (cd $d && npx --yes wrangler deploy --dry-run --outdir /tmp/dry-$d); done

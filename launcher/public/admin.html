@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>EAS Admin</title>
+  <link rel="icon" href="/icon.svg" type="image/svg+xml">
+  <style>
+    :root {
+      --bg: #070b14;
+      --surface: #0f1623;
+      --surface-2: #1a2332;
+      --border: rgba(255,255,255,.08);
+      --text: #f1f5f9;
+      --muted: #94a3b8;
+      --accent: #ef4444;
+      --green: #22c55e;
+      --amber: #f59e0b;
+      --info: #38bdf8;
+      --radius: 12px;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100dvh;
+      font-family: Inter, system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+    header {
+      background: rgba(15,22,35,.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      padding: 16px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+      position: sticky;
+      top: 0;
+      z-index: 40;
+    }
+    .brand h1 { margin: 0; font-size: 1.2rem; font-weight: 700; }
+    .brand h1 span { color: var(--accent); }
+    .brand p { margin: 4px 0 0; color: var(--muted); font-size: .85rem; }
+    nav { display: flex; gap: 8px; flex-wrap: wrap; }
+    a.btn, button, input, select, textarea {
+      font-family: inherit;
+      font-size: .9rem;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--surface-2);
+      color: var(--text);
+    }
+    a.btn, button {
+      font-weight: 500;
+      padding: 9px 14px;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      line-height: 1.2;
+    }
+    a.btn:hover, button:hover { filter: brightness(1.12); }
+    a.btn:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+    button.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+    button.danger { background: transparent; color: #fca5a5; border-color: rgba(239,68,68,.4); }
+    button.ghost { background: transparent; }
+    main { max-width: 880px; margin: 0 auto; padding: 28px 20px 48px; display: grid; gap: 22px; }
+    .who { color: var(--muted); font-size: .85rem; }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 22px;
+    }
+    h2 { margin: 0 0 16px; font-size: 1.05rem; }
+    form { display: grid; gap: 12px; }
+    label { display: grid; gap: 6px; font-size: .8rem; font-weight: 600; color: var(--muted); }
+    input, select, textarea { padding: 9px 12px; width: 100%; }
+    textarea { min-height: 110px; resize: vertical; }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .targets { display: flex; flex-wrap: wrap; gap: 10px 16px; }
+    .targets label { display: flex; align-items: center; gap: 6px; font-weight: 500; color: var(--text); }
+    .targets input { width: auto; }
+    .actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+    .hint { color: var(--muted); font-size: .78rem; margin: 0; }
+    .error { color: #fca5a5; font-size: .85rem; min-height: 1.2em; }
+    .list { display: grid; gap: 12px; }
+    .item { border: 1px solid var(--border); border-left: 4px solid var(--info); border-radius: 10px; padding: 14px 16px; background: var(--surface-2); }
+    .item.outage { border-left-color: var(--accent); }
+    .item.maintenance { border-left-color: var(--amber); }
+    .item.resolved { border-left-color: var(--green); }
+    .item.info { border-left-color: var(--info); }
+    .item-head { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; align-items: flex-start; }
+    .item h3 { margin: 0; font-size: 1rem; }
+    .item p { margin: 6px 0 0; font-size: .88rem; white-space: pre-wrap; }
+    .meta { margin-top: 8px; font-size: .75rem; color: var(--muted); display: flex; flex-wrap: wrap; gap: 10px; }
+    .pill { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 999px; border: 1px solid var(--border); font-size: .72rem; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
+    .pill.on { border-color: var(--green); color: var(--green); }
+    .pill.off { color: var(--muted); }
+    .empty { color: var(--muted); margin: 0; }
+    .maint-grid { display: grid; gap: 12px; }
+    .maint-site { border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; background: var(--surface-2); display: grid; gap: 10px; }
+    .maint-site.on { border-color: var(--amber); }
+    .maint-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+    .maint-head h3 { margin: 0; font-size: 1rem; }
+    .toggle { display: flex; align-items: center; gap: 8px; font-size: .85rem; font-weight: 600; color: var(--text); }
+    .toggle input { width: auto; accent-color: var(--amber); }
+    table { width: 100%; border-collapse: collapse; font-size: .82rem; }
+    th, td { text-align: left; padding: 8px 6px; border-bottom: 1px solid var(--border); vertical-align: top; }
+    th { color: var(--muted); font-size: .72rem; text-transform: uppercase; letter-spacing: .04em; }
+    .summary { display: flex; flex-wrap: wrap; gap: 10px; margin: 0 0 14px; }
+    .summary span { background: var(--surface-2); border: 1px solid var(--border); border-radius: 999px; padding: 4px 10px; font-size: .8rem; }
+    .filters { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin: 0 0 14px; }
+    .pager { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 12px; }
+    .linklike { background: none; border: 0; padding: 0; color: inherit; text-decoration: underline dotted; cursor: pointer; }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .78rem; }
+    .admin-list { display: grid; gap: 8px; margin: 0 0 12px; }
+    .admin-row { display: flex; justify-content: space-between; gap: 10px; align-items: center; border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; background: var(--surface-2); }
+    .admin-row form { display: flex; gap: 8px; flex-wrap: wrap; align-items: end; }
+    .pill.sched { border-color: var(--amber); color: var(--amber); text-transform: none; letter-spacing: 0; margin-left: 6px; vertical-align: middle; }
+    .item.upcoming { border-left-color: var(--info); }
+    .item.active { border-left-color: var(--amber); }
+    .item.ended { border-left-color: var(--muted); opacity: .75; }
+    .ins-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; }
+    .ins-box { border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; background: var(--surface-2); min-width: 0; }
+    .ins-box h3 { margin: 0 0 10px; font-size: .8rem; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
+    .ins-chart { display: flex; align-items: flex-end; gap: 2px; height: 120px; }
+    .ins-col { flex: 1 1 0; display: flex; flex-direction: column-reverse; min-width: 2px; height: 100%; }
+    .ins-col span { display: block; }
+    .s-us { background: var(--accent); } .s-ca { background: var(--info); } .s-launcher { background: var(--green); }
+    .ins-axis { display: flex; justify-content: space-between; color: var(--muted); font-size: .7rem; margin-top: 4px; }
+    .legend { display: flex; gap: 12px; font-size: .75rem; color: var(--muted); margin-top: 6px; }
+    .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 4px; vertical-align: -1px; }
+    .hbar { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 10px; font-size: .8rem; margin-bottom: 6px; }
+    .hbar .t { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .hbar .n { color: var(--muted); font-variant-numeric: tabular-nums; }
+    .hbar .b { grid-column: 1 / -1; height: 4px; border-radius: 2px; background: var(--info); }
+    .table-wrap { overflow-x: auto; }
+    .filters-apply { align-self: end; }
+    .sub-h { margin-top: 22px; }
+    @media (max-width: 640px) {
+      .row { grid-template-columns: 1fr; }
+    }
+    @media (prefers-color-scheme: light) {
+      :root { --bg: #f8fafc; --surface: #ffffff; --surface-2: #f1f5f9; --border: rgba(15,23,42,.14); --text: #0f172a; --muted: #475569; --green: #15803d; --amber: #b45309; --info: #0369a1; }
+      header { background: rgba(255,255,255,.88); }
+      button.danger { color: #b91c1c; }
+      .error { color: #b91c1c; }
+    }
+    .skip { position: absolute; left: -999px; top: 8px; z-index: 100; background: var(--surface); color: var(--text); padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border); }
+    .skip:focus { left: 8px; }
+    @media (max-width: 640px) { header { padding: 14px 16px; } main { padding: 20px 14px 40px; } .card { padding: 16px; } }
+    @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+  </style>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+  <header>
+    <div class="brand">
+      <h1>EAS <span>Admin</span></h1>
+      <p>Post announcements and lock the US site, the CA site, or the launcher for maintenance</p>
+    </div>
+    <nav>
+      <a class="btn" href="/">Launcher</a>
+      <a class="btn" href="/status">Status</a>
+    </nav>
+  </header>
+  <main id="main">
+    <p class="who" id="who" aria-live="polite">Checking Access…</p>
+    <section class="card">
+      <h2>Site lockout</h2>
+      <p class="hint">Turn a site off while you are fixing or adding something. Visitors see a full-screen maintenance page. This admin page, the APIs, and the status and announcement feeds stay up so you can switch it back off.</p>
+      <div class="maint-grid" id="maintGrid"><p class="empty">Loading…</p></div>
+      <p class="error" id="maintError" role="alert"></p>
+    </section>
+    <section class="card" aria-labelledby="schedTitle">
+      <h2 id="schedTitle">Scheduled maintenance</h2>
+      <p class="hint">Plan a lockout ahead of time. The site locks at the start and unlocks at the end on its own (checked every 5 minutes), and an optional maintenance announcement shows from now until the window ends. The manual switch above always wins. Windows can be up to 7 days long.</p>
+      <div class="list" id="schedList"><p class="empty">Loading…</p></div>
+      <form id="schedForm" autocomplete="off">
+        <div>
+          <label>Sites</label>
+          <div class="targets">
+            <label><input type="checkbox" name="schedSite" value="us"> US</label>
+            <label><input type="checkbox" name="schedSite" value="ca"> CA</label>
+            <label><input type="checkbox" name="schedSite" value="launcher"> Launcher</label>
+          </div>
+        </div>
+        <div class="row">
+          <label>Start (ET)
+            <input id="schedStart" type="datetime-local" step="60" required>
+          </label>
+          <label>End (ET)
+            <input id="schedEnd" type="datetime-local" step="60" required>
+          </label>
+        </div>
+        <label>Message (optional)
+          <textarea id="schedMessage" maxlength="2000"></textarea>
+        </label>
+        <label class="toggle"><input type="checkbox" id="schedAnnounce" checked> Post a maintenance announcement now</label>
+        <div class="actions">
+          <button class="primary" type="submit">Schedule window</button>
+        </div>
+        <p class="error" id="schedError" role="alert"></p>
+      </form>
+    </section>
+    <section class="card">
+      <h2>Admins</h2>
+      <p class="hint">admin@example.com is a permanent admin and cannot be removed. New admins are stored here and, when a Cloudflare API token is configured, synced to the Access policy.</p>
+      <div class="admin-list" id="adminList"><p class="empty">Loading…</p></div>
+      <form id="adminForm" autocomplete="off">
+        <label>Add email
+          <input id="adminEmail" type="email" required placeholder="name@example.com">
+        </label>
+        <div class="actions">
+          <button class="primary" type="submit">Add admin</button>
+        </div>
+        <p class="hint" id="adminSyncNote"></p>
+        <p class="error" id="adminError"></p>
+      </form>
+    </section>
+    <section class="card">
+      <h2 id="formTitle">New announcement</h2>
+      <form id="form" autocomplete="off">
+        <input type="hidden" id="id" value="">
+        <label>Title
+          <input id="title" maxlength="200" required>
+        </label>
+        <label>Message
+          <textarea id="message" maxlength="2000" required></textarea>
+        </label>
+        <div class="row">
+          <label>Type
+            <select id="type">
+              <option value="info">Info</option>
+              <option value="outage">Outage</option>
+              <option value="maintenance">Maintenance</option>
+              <option value="resolved">Resolved</option>
+            </select>
+          </label>
+          <div>
+            <label>Target sites</label>
+            <div class="targets">
+              <label><input type="checkbox" name="target" value="all" checked> All</label>
+              <label><input type="checkbox" name="target" value="us"> US</label>
+              <label><input type="checkbox" name="target" value="ca"> CA</label>
+              <label><input type="checkbox" name="target" value="launcher"> Launcher</label>
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <label>Start (optional, ET)
+            <input id="start" type="datetime-local" step="60">
+          </label>
+          <label>End (optional, ET)
+            <input id="end" type="datetime-local" step="60">
+          </label>
+        </div>
+        <p class="hint">Times are 24-hour America/New_York (ET). Dates show as DD/MM/YYYY. Leave the start empty to publish immediately, and the end empty to leave it up until you resolve or delete it.</p>
+        <div class="actions">
+          <button class="primary" type="submit" id="saveBtn">Publish</button>
+          <button class="ghost" type="button" id="cancelBtn" hidden>Cancel edit</button>
+        </div>
+        <p class="error" id="formError"></p>
+      </form>
+    </section>
+    <section class="card">
+      <h2>All announcements</h2>
+      <div class="list" id="list"><p class="empty">Loading…</p></div>
+    </section>
+    <section class="card" aria-labelledby="insTitle">
+      <h2 id="insTitle">Insights</h2>
+      <p class="hint">Traffic from the access log, excluding the launcher's own status checks. Times are 24-hour ET; dates are DD/MM/YYYY.</p>
+      <div class="filters">
+        <label>Range
+          <select id="insRange">
+            <option value="24h">Last 24 hours</option>
+            <option value="7d">Last 7 days</option>
+            <option value="30d">Last 30 days</option>
+          </select>
+        </label>
+        <label>Site
+          <select id="insSite">
+            <option value="">All</option>
+            <option value="us">US</option>
+            <option value="ca">CA</option>
+            <option value="launcher">Launcher</option>
+          </select>
+        </label>
+      </div>
+      <div id="insBody" aria-live="polite"><p class="empty">Loading…</p></div>
+    </section>
+    <section class="card">
+      <h2>Access log</h2>
+      <p class="hint">Site visits from the launcher, US and Canada Workers. Times are 24-hour ET; dates are DD/MM/YYYY. The full client IP (CF-Connecting-IP) is stored with a 12-character salted hash; both are deleted after 30 days. Click an IP to filter by it.</p>
+      <div class="summary" id="logSummary"></div>
+      <form class="filters" id="logFilters">
+        <label>Site
+          <select id="logSite">
+            <option value="">All</option>
+            <option value="us">US</option>
+            <option value="ca">CA</option>
+            <option value="launcher">Launcher</option>
+          </select>
+        </label>
+        <label>Path contains
+          <input id="logPath" placeholder="/api/active">
+        </label>
+        <label>IP starts with
+          <input id="logIp" placeholder="203.0.113." autocomplete="off" spellcheck="false">
+        </label>
+        <label>Status
+          <input id="logStatus" inputmode="numeric" placeholder="200">
+        </label>
+        <label>From (ET)
+          <input id="logFrom" type="datetime-local" step="60">
+        </label>
+        <label>To (ET)
+          <input id="logTo" type="datetime-local" step="60">
+        </label>
+        <div class="actions filters-apply">
+          <button class="primary" type="submit">Apply</button>
+        </div>
+      </form>
+      <div id="logTable" class="table-wrap"><p class="empty">Loading…</p></div>
+      <div class="pager" id="logPager"></div>
+      <h2 class="sub-h">Access logins</h2>
+      <p class="hint" id="loginNote">Cloudflare Access authentication events for this admin app.</p>
+      <div id="loginTable" class="table-wrap"><p class="empty">Loading…</p></div>
+    </section>
+  </main>
+  <script src="/js/admin.js"></script>
+  <script src="/js/admin-extra.js"></script>
+</body>
+</html>

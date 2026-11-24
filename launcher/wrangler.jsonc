@@ -1,0 +1,52 @@
+{
+  // eas-launcher: Worker + static assets.
+  // / and /status (from public/status.html) are served as assets.
+  // /api/status, /api/announcements, /api/maintenance and /api/admin/* are handled by src/index.js.
+  // run_worker_first is true so the Worker can serve a maintenance page on /
+  // and /status. /admin, /api/admin/*, /api/status, /api/announcements and
+  // /api/maintenance are never locked. /admin and /api/admin/* still verify
+  // the Access JWT and fail closed if Access is missing or misconfigured.
+  // global_fetch_strictly_public lets this Worker fetch other
+  // *.your-subdomain.workers.dev URLs on the same account (avoids error 1042).
+  "name": "eas-launcher",
+  "main": "src/index.js",
+  "compatibility_date": "2026-11-19",
+  "compatibility_flags": ["global_fetch_strictly_public"],
+  "observability": { "enabled": true },
+  "vars": {
+    // Team domain and AUD are set after the Access application is created.
+    // Without them, /admin and /api/admin/* fail closed (403).
+    "CF_ACCESS_TEAM_DOMAIN": "https://your-team.cloudflareaccess.com",
+    "CF_ACCESS_AUD": "REPLACE_WITH_ACCESS_APP_AUD_TAG",
+    "CF_ACCESS_ALLOWED_EMAILS": "admin@example.com",
+    "CF_ACCOUNT_ID": "REPLACE_WITH_ACCOUNT_ID",
+    "CF_ACCESS_APP_ID": "REPLACE_WITH_ACCESS_APP_ID"
+    // Secrets, never in this file: CF_API_TOKEN, ACCESS_LOG_SALT
+  },
+  "triggers": {
+    "crons": ["15 9 * * *", "*/5 * * * *"]
+  },
+  "d1_databases": [
+    {
+      "binding": "ACCESS_LOG",
+      "database_name": "eas-access-log",
+      "database_id": "REPLACE_WITH_D1_DATABASE_ID",
+      // `wrangler d1 migrations apply eas-access-log [--local|--remote]` (run from launcher/)
+      "migrations_dir": "../schema/migrations"
+    }
+  ],
+  "kv_namespaces": [
+    // Create with: npx wrangler kv namespace create ANNOUNCEMENTS, then paste the id here.
+    {
+      "binding": "ANNOUNCEMENTS",
+      "id": "REPLACE_WITH_KV_NAMESPACE_ID"
+    }
+  ],
+  "assets": {
+    "directory": "./public",
+    "binding": "ASSETS",
+    "html_handling": "auto-trailing-slash",
+    "not_found_handling": "none",
+    "run_worker_first": true
+  }
+}

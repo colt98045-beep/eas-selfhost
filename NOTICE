@@ -1,0 +1,8 @@
+EAS self-host kit
+Copyright 2026 The EAS Authors
+
+Licensed under the Apache License, Version 2.0 (see LICENSE).
+Third-party data and service notices for the US dashboard: us/NOTICE.
+Alert data comes from public feeds (GWES Central Alert Repository, NOAA/NWS,
+Environment and Climate Change Canada GeoMet). This project is not affiliated
+with, endorsed by, or operated by any of those organizations.

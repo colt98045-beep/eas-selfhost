@@ -1,0 +1,102 @@
+<!--
+  TEMPLATE. EDIT BEFORE YOU PUBLISH.
+  This policy was written for one specific deployment. It is NOT legal advice and
+  it is NOT correct for your deployment as-is. Replace every [BRACKETED] value,
+  check every statement against what YOUR sites actually collect, where your
+  data is processed, your retention, your contact details and the laws that
+  apply to you, then delete the "Template" notice paragraph below. Then run
+  `node scripts/sync-privacy.mjs` to regenerate the three site copies.
+-->
+<!-- Politique de confidentialité EAS, version française (site canadien).
+     Traduction de privacy/policy.html ; les deux doivent rester identiques sur le fond.
+     En cas d'écart, communiquez avec nous. Générée dans privacy.html du site CA par scripts/sync-privacy.mjs. -->
+<h1 id="privacy-title-fr">Politique de confidentialité</h1>
+<p class="privacy-template-warning"><strong>Avis de modèle (à retirer avant publication) :</strong> cette politique est un modèle non modifié de la trousse d’auto-hébergement EAS. L’exploitant de ce site ne l’a pas encore révisée.</p>
+<p class="privacy-meta">Date d'entrée en vigueur : 24/11/2026 · S'applique à EAS Launcher (eas-launcher.your-subdomain.workers.dev), EAS Repository US (eas-repository.your-subdomain.workers.dev) et EAS Repository Canada (eas-repository-ca.your-subdomain.workers.dev), appelés « les sites » ci-dessous.</p>
+
+<h2>En bref</h2>
+<ul>
+  <li>Lors de votre visite, nous journalisons votre adresse IP complète, la page ou le chemin d'API demandé, l'heure, votre pays, l'agent utilisateur de votre navigateur et le code de statut HTTP.</li>
+  <li>Nous utilisons ces journaux uniquement pour la sécurité, la prévention des abus et le bon fonctionnement des sites.</li>
+  <li>Les journaux sont conservés 30 jours, puis supprimés automatiquement.</li>
+  <li>Nous ne vendons ni ne partageons aucun renseignement personnel, et nous ne l'utilisons pas à des fins publicitaires.</li>
+  <li>Les visiteurs n'ont pas de compte. Nous n'utilisons aucun outil d'analyse ni témoin (cookie) publicitaire.</li>
+</ul>
+
+<h2>Qui est responsable</h2>
+<p>Les sites sont exploités par [YOUR NAME OR ORGANIZATION]. [YOUR NAME OR ORGANIZATION] est responsable des renseignements personnels traités par les sites et agit à titre de personne responsable de la protection des renseignements personnels. Contact confidentialité : <a href="mailto:admin@example.com">admin@example.com</a>.</p>
+
+<h2>Ce que nous recueillons</h2>
+<p><strong>Journaux de visite.</strong> Pour les demandes de pages et d'API, chaque site enregistre : votre adresse IP complète; un hachage salé et irréversible de cette adresse; le chemin demandé (sans les paramètres de requête); la date et l'heure; le pays que Cloudflare déduit de votre adresse IP (le pays seulement, pas votre position précise); l'agent utilisateur de votre navigateur; le code de statut HTTP; et, sur le site américain, si la vérification anti-robot a été affichée ou réussie. Le site américain journalise aussi les visiteurs à qui la vérification est présentée, c'est pourquoi cette politique peut être lue sans passer la vérification.</p>
+<p><strong>Connexions administrateur.</strong> La page d'administration est protégée par Cloudflare Access. Les tentatives de connexion (adresse courriel, heure, adresse IP, pays et résultat) sont enregistrées par Cloudflare Access et visibles par les administrateurs. Seuls les administrateurs invités peuvent se connecter.</p>
+<p><strong>Ce que nous ne recueillons pas.</strong> Nous ne recueillons ni nom, ni adresse postale, ni données de paiement, ni position précise, ni renseignement personnel sensible, et nous ne créons pas de profils de visiteurs.</p>
+
+<h2>Pourquoi nous les recueillons</h2>
+<p>Nous utilisons ces renseignements uniquement pour assurer la sécurité et le fonctionnement des sites : détecter et bloquer les abus et les attaques automatisées, enquêter sur les incidents de sécurité et les pannes, et vérifier que les sites et leurs API répondent. Nous ne les utilisons pas pour la publicité, le marketing ou le profilage, ni pour prendre des décisions automatisées à votre sujet.</p>
+
+<h2>Consentement</h2>
+<p>Les sites ne peuvent pas fonctionner de façon sécuritaire sans ces journaux. En utilisant les sites, vous consentez à cette collecte limitée aux fins de sécurité décrites ci-dessus. Comme il s'agit de données techniques de base recueillies à des fins de sécurité, nous nous appuyons sur un consentement implicite. Si vous n'êtes pas d'accord, veuillez ne pas utiliser les sites. Vous pouvez retirer votre consentement pour l'avenir en cessant d'utiliser les sites, et nous demander de supprimer ce que nous détenons déjà (voir « Vos droits »).</p>
+
+<h2>Témoins (cookies) et stockage du navigateur</h2>
+<ul>
+  <li><strong><code>__Host-eas_gate</code></strong> (site américain seulement) : déposé après la vérification anti-robot pour ne pas vous la redemander pendant au plus 12 heures. Il ne contient qu'une heure d'expiration et une signature. Il est strictement nécessaire.</li>
+  <li><strong>Témoin de connexion Cloudflare Access</strong> (<code>CF_Authorization</code>, page d'administration seulement) : déposé par Cloudflare Access lorsqu'un administrateur se connecte, pour maintenir sa session. Il est strictement nécessaire. Les visiteurs ordinaires ne le reçoivent jamais.</li>
+  <li><strong>Stockage du navigateur :</strong> les bannières d'annonce que vous avez fermées sont conservées dans le stockage de session de votre navigateur (effacé à la fermeture de l'onglet). Les réglages du tableau de bord que vous choisissez (thème, son, zones enregistrées, alertes épinglées, historique des alertes et mot de passe facultatif du tableau de bord) sont conservés dans le stockage local de votre navigateur. Ces données restent sur votre appareil; nous ne les recevons jamais, et vous pouvez les effacer à tout moment dans votre navigateur.</li>
+</ul>
+<p>Nous n'utilisons aucun témoin d'analyse, publicitaire ou de suivi.</p>
+
+<h2>Vérification anti-robot (site américain)</h2>
+<p>Le site américain utilise Cloudflare Turnstile pour vérifier qu'un visiteur n'est pas un robot avant le chargement du site. Turnstile traite des renseignements sur votre navigateur et votre appareil à cette fin, comme le décrit <a href="https://www.cloudflare.com/turnstile-privacy-policy/" rel="noopener" target="_blank">l'addenda de confidentialité Turnstile de Cloudflare</a>.</p>
+
+<h2>Qui traite les données, et où</h2>
+<p>Les sites sont hébergés par Cloudflare (Workers, D1 et KV). Cloudflare traite les demandes et stocke les journaux pour notre compte, à titre de fournisseur de services. Voir <a href="https://www.cloudflare.com/privacypolicy/" rel="noopener" target="_blank">la politique de confidentialité de Cloudflare</a>.</p>
+<p><strong>Les données sont traitées à l'extérieur du Canada.</strong> Cloudflare traite et stocke des renseignements aux États-Unis et dans d'autres pays. Les renseignements qui y sont traités sont assujettis aux lois de ces pays et peuvent être accessibles à leurs tribunaux, à leurs organismes d'application de la loi et à leurs autorités de sécurité nationale.</p>
+<p>Les tableaux de bord américain et canadien chargent aussi des polices, une bibliothèque cartographique, des tuiles de carte et des images météo et radar directement auprès de tiers, dont Google Fonts, unpkg, OpenStreetMap, la NOAA / National Weather Service et Environnement et Changement climatique Canada. Votre navigateur communique directement avec ces services, qui reçoivent donc votre adresse IP et votre agent utilisateur selon leurs propres politiques. Les données d'alerte météo proviennent de flux gouvernementaux publics.</p>
+<p>Nous ne vendons, ne louons, ne partageons ni ne communiquons autrement vos renseignements personnels à quiconque, sauf si la loi l'exige.</p>
+
+<h2>Durée de conservation</h2>
+<p>Les journaux de visite sont supprimés automatiquement après 30 jours. Les enregistrements de connexion administrateur sont conservés par Cloudflare Access selon ses propres règles. Les données de votre navigateur y restent jusqu'à ce que vous les effaciez.</p>
+
+<h2>Mesures de sécurité</h2>
+<p>Les journaux sont stockés chez Cloudflare et ne peuvent être consultés que par les administrateurs connectés au moyen de Cloudflare Access. Tout le trafic utilise HTTPS. Nous ne recueillons que ce que la sécurité exige et ne le conservons que peu de temps. Aucun système n'est parfaitement sûr; si un incident présente un risque réel de préjudice grave, nous aviserons les personnes concernées et les autorités lorsque la loi l'exige.</p>
+
+<h2>Vos droits</h2>
+<p>Vous pouvez nous demander quels renseignements personnels nous détenons à votre sujet et comment nous les utilisons, en obtenir une copie, les faire corriger ou supprimer, vous opposer à leur utilisation ou retirer votre consentement. Écrivez à <a href="mailto:admin@example.com">admin@example.com</a>. Pour nous aider à trouver vos entrées, indiquez la date approximative de votre visite et votre adresse IP. Nous pourrions demander des renseignements pour confirmer que la demande vient de vous. Nous répondrons dans un délai de 30 jours, sans frais. Comme les journaux ne sont conservés que 30 jours, les entrées plus anciennes n'existent plus.</p>
+
+<h2>Canada (LPRPDE et Loi 25 du Québec)</h2>
+<ul>
+  <li><strong>Responsabilité :</strong> [YOUR NAME OR ORGANIZATION] est responsable des renseignements personnels traités par les sites et de leur protection. Contact : <a href="mailto:admin@example.com">admin@example.com</a>.</li>
+  <li><strong>Fins :</strong> sécurité, prévention des abus et bon fonctionnement des sites. Nous n'utiliserons pas ces renseignements à d'autres fins sans votre consentement, sauf si la loi le permet.</li>
+  <li><strong>Consentement :</strong> implicite par votre utilisation des sites, uniquement à cette fin de sécurité (voir « Consentement »).</li>
+  <li><strong>Renseignements recueillis et conservation :</strong> tels que décrits ci-dessus; les journaux de visite sont supprimés après 30 jours.</li>
+  <li><strong>Mesures de sécurité :</strong> telles que décrites ci-dessus.</li>
+  <li><strong>Hors du Canada :</strong> les renseignements sont traités à l'extérieur du Canada par Cloudflare, notamment sur des serveurs situés aux États-Unis.</li>
+  <li><strong>Vos droits :</strong> accéder à vos renseignements, les faire corriger et retirer votre consentement. Nous répondons dans un délai de 30 jours.</li>
+  <li><strong>Plaintes :</strong> communiquez d'abord avec nous. Si vous n'êtes pas satisfait, vous pouvez porter plainte auprès du <a href="https://www.priv.gc.ca/fr/" rel="noopener" target="_blank">Commissariat à la protection de la vie privée du Canada</a> ou, au Québec, de la <a href="https://www.cai.gouv.qc.ca/" rel="noopener" target="_blank">Commission d'accès à l'information du Québec</a>.</li>
+</ul>
+
+<h2>Californie (CCPA / CPRA)</h2>
+<p>Cette section s'adresse aux résidents de la Californie. Compte tenu de la taille des sites, la California Consumer Privacy Act ne s'applique probablement pas à eux, mais nous respectons les droits ci-dessous pour toute personne qui en fait la demande.</p>
+<ul>
+  <li><strong>Catégories recueillies au cours des 12 derniers mois :</strong> identifiants (adresse IP); activité sur Internet ou sur un autre réseau électronique (pages et chemins d'API demandés, agent utilisateur, statut HTTP); données de géolocalisation (pays seulement, déduit de l'adresse IP).</li>
+  <li><strong>Sources :</strong> directement de votre navigateur lors de votre visite, et de Cloudflare, notre hébergeur.</li>
+  <li><strong>Fin commerciale :</strong> sécurité, y compris la détection et la prévention des abus, et le bon fonctionnement des sites.</li>
+  <li><strong>Conservation :</strong> 30 jours.</li>
+  <li><strong>Nous ne vendons ni ne partageons aucun renseignement personnel</strong>, et ne l'avons pas fait au cours des 12 derniers mois. Nous ne l'utilisons pas pour de la publicité comportementale intercontextuelle. Nous ne vendons ni ne partageons sciemment les renseignements de personnes de moins de 16 ans.</li>
+  <li><strong>Renseignements personnels sensibles :</strong> nous n'en recueillons ni n'en utilisons.</li>
+  <li><strong>Vos droits :</strong> savoir ce que nous recueillons et comment nous l'utilisons, le faire supprimer, le faire corriger, refuser la vente ou le partage (nous ne faisons ni l'un ni l'autre) et ne pas faire l'objet de discrimination pour avoir exercé ces droits.</li>
+  <li><strong>Comment présenter une demande :</strong> écrivez à <a href="mailto:admin@example.com">admin@example.com</a>. Vous pouvez recourir à un mandataire autorisé. Nous confirmerons la demande et y répondrons dans le délai prévu par la loi (45 jours), normalement dans les 30 jours.</li>
+</ul>
+
+<h2>Union européenne et Royaume-Uni (RGPD / UK GDPR)</h2>
+<p>Notre base juridique pour les journaux de visite est notre intérêt légitime à assurer la sécurité et le fonctionnement des sites; nous l'avons mis en balance avec vos intérêts et limitons les données au minimum et à une courte durée. Vous avez le droit d'accéder à vos données, de les faire corriger et effacer, de limiter leur traitement, à la portabilité lorsqu'elle s'applique, et de vous opposer au traitement fondé sur l'intérêt légitime. Vous avez aussi le droit de déposer une plainte auprès d'une autorité de contrôle, par exemple l'autorité de protection des données de votre lieu de résidence ou de travail, ou l'Information Commissioner's Office au Royaume-Uni.</p>
+
+<h2>Enfants</h2>
+<p>Les sites ne s'adressent pas aux enfants de moins de 13 ans, et nous ne recueillons pas sciemment de renseignements personnels auprès d'enfants de moins de 13 ans (au sens de la Children's Online Privacy Protection Act des États-Unis). Si vous croyez qu'un enfant nous a fourni des renseignements, communiquez avec nous et nous les supprimerons.</p>
+
+<h2>Modifications de cette politique</h2>
+<p>Si nous modifions cette politique, nous mettrons cette page à jour et changerons la date d'entrée en vigueur en haut. Si une modification touche de façon importante l'utilisation de renseignements que nous détenons déjà, nous publierons un avis sur les sites avant son entrée en vigueur.</p>
+
+<h2>Nous joindre</h2>
+<p>Questions, demandes ou plaintes : <a href="mailto:admin@example.com">admin@example.com</a>.</p>
+<p class="privacy-meta">Cette politique explique en langage clair comment les sites traitent les renseignements. Elle ne constitue pas un avis juridique et ne prétend à aucune certification ni à une conformité complète à une loi en particulier.</p>

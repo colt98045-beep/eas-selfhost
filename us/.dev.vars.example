@@ -1,0 +1,7 @@
+# Copy to .dev.vars for `wrangler dev`. Never commit .dev.vars.
+# Real Turnstile secret for a widget whose hostnames include localhost.
+# (Cloudflare's dummy test keys cannot pass this gate: it checks action "gate" and the hostname.)
+TURNSTILE_SECRET=
+# >= 32 random bytes, e.g. `openssl rand -base64 48`
+GATE_COOKIE_SECRET=
+ACCESS_LOG_SALT=change-me-to-a-long-random-string

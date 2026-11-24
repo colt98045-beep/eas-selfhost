@@ -1,0 +1,30 @@
+EAS Repository
+Copyright 2026 The EAS Authors
+
+Project: https://github.com/your-github-user/eas-repository
+License: Apache License 2.0
+         https://github.com/your-github-user/eas-repository/blob/main/LICENSE
+
+This product uses data and services from:
+
+- GWES Central Alert Repository
+  Global Weather & EAS Society, LLC
+  https://alerts.globaleas.org
+  https://alerts.globaleas.org/swagger/
+  Public API, no key required. Used under their public terms.
+
+- National Oceanic and Atmospheric Administration (NOAA) / National Weather Service
+  CAP feeds via https://alerts.weather.gov and https://api.weather.gov
+  Radar imagery via https://radar.weather.gov
+  Public domain U.S. government works.
+
+The dashboard also loads these third-party libraries and assets from public CDNs:
+
+- Leaflet 1.9.4 (BSD 2-Clause License) - https://leafletjs.com
+- Inter and Share Tech Mono fonts via Google Fonts (SIL Open Font License 1.1)
+
+Requests to these services include a descriptive User-Agent identifying this project
+(EASRepository/1.0 + repository URL).
+
+EAS Repository is an independent project and is not affiliated with, endorsed by, or
+operated by the Global Weather & EAS Society, LLC, NOAA, or the National Weather Service.

@@ -1,0 +1,28 @@
+// Cloudflare Workers config for the hosted US instance (eas-repository.your-subdomain.workers.dev).
+// Workers Builds runs `npx wrangler deploy` from the repo root on every push to main.
+// Static files are served from the repo root; .assetsignore keeps everything except the web app private.
+{
+  "name": "eas-repository",
+  "main": "src/index.js",
+  "compatibility_date": "2026-11-19",
+  "observability": { "enabled": true },
+  "d1_databases": [
+    {
+      "binding": "ACCESS_LOG",
+      "database_name": "eas-access-log",
+      "database_id": "REPLACE_WITH_D1_DATABASE_ID"
+    }
+  ],
+  "assets": {
+    "directory": ".",
+    "binding": "ASSETS",
+    "html_handling": "auto-trailing-slash",
+    "not_found_handling": "none",
+    "run_worker_first": true
+  },
+  "vars": {
+    "TURNSTILE_SITEKEY": "1x00000000000000000000AA",
+    "TURNSTILE_HOSTNAMES": "eas-repository.your-subdomain.workers.dev"
+  }
+  // Secrets are set on the Worker, never in this file: TURNSTILE_SECRET, GATE_COOKIE_SECRET, ACCESS_LOG_SALT
+}

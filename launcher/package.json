@@ -1,0 +1,11 @@
+{
+  "name": "eas-launcher",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test tests/*.test.mjs",
+    "dev": "wrangler dev",
+    "dry-run": "wrangler deploy --dry-run",
+    "build-inline": "node scripts/build-inline.mjs"
+  }
+}
