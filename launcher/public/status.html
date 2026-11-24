@@ -224,6 +224,18 @@
     .lockout b { color: var(--lock, var(--accent)); }
     .lockout p { margin: 4px 0 0; white-space: pre-wrap; }
     .lockout .lk-meta { display: block; color: var(--muted); font-size: .78rem; margin-top: 4px; }
+    .incident.full { display: block; border-left: 3px solid var(--sev, var(--lock, var(--accent))); padding: 12px 0 12px 12px; }
+    .incident.full.sev-critical { --sev: #ef4444; } .incident.full.sev-major { --sev: #f97316; } .incident.full.sev-minor { --sev: #eab308; }
+    .incident .inc-top { display: flex; justify-content: space-between; gap: 12px; align-items: flex-start; }
+    .incident h3 { margin: 0 0 4px; font-size: .98rem; }
+    .incident .inc-sites { color: var(--muted); font-size: .78rem; }
+    .timeline { list-style: none; margin: 10px 0 0; padding: 0 0 0 12px; border-left: 2px solid var(--border); display: grid; gap: 10px; }
+    .upd { position: relative; }
+    .upd::before { content: ""; position: absolute; left: -18px; top: 5px; width: 10px; height: 10px; border-radius: 50%; background: var(--st, var(--muted)); }
+    .upd .upd-status { font-weight: 700; font-size: .78rem; text-transform: uppercase; letter-spacing: .05em; color: var(--st, var(--muted)); margin-right: 8px; }
+    .upd .upd-at { color: var(--muted); font-size: .78rem; }
+    .upd p { margin: 3px 0 0; white-space: pre-wrap; font-size: .86rem; }
+    .st-investigating { --st: #ef4444; } .st-identified { --st: #f97316; } .st-monitoring { --st: #3b82f6; } .st-resolved { --st: #22c55e; }
     .reason-outage { --lock: #ef4444; }
     .reason-maintenance { --lock: #f59e0b; }
     .reason-update { --lock: #3b82f6; }

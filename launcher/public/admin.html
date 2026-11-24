@@ -111,6 +111,9 @@
     .maint-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
     .maint-head h3 { margin: 0; font-size: 1rem; }
     [hidden] { display: none !important; }
+    .inc-updates { list-style: none; margin: 8px 0; padding: 0 0 0 12px; border-left: 2px solid var(--border); display: grid; gap: 8px; font-size: .85rem; }
+    .inc-updates p { margin: 2px 0 0; white-space: pre-wrap; }
+    .upd.st-investigating b { color: #ef4444; } .upd.st-identified b { color: #f97316; } .upd.st-monitoring b { color: #3b82f6; } .upd.st-resolved b { color: #22c55e; }
     .pill.reason-outage { background: rgba(239,68,68,.18); color: #fca5a5; }
     .pill.reason-maintenance { background: rgba(245,158,11,.18); color: #fcd34d; }
     .pill.reason-update { background: rgba(59,130,246,.18); color: #93c5fd; }
@@ -225,6 +228,57 @@
           <button class="primary" type="submit">Schedule window</button>
         </div>
         <p class="error" id="schedError" role="alert"></p>
+      </form>
+    </section>
+    <section class="card" aria-labelledby="incTitle">
+      <h2 id="incTitle">Incidents</h2>
+      <p class="hint">Health-check outages, lockouts and manual incidents from the last 30 days. Post timestamped updates (shown on /status and the launcher banner); posting <strong>Resolved</strong> closes an incident. A new incident here (security, outage, degraded performance and so on) never locks a site or changes its up/down status. You can edit or delete only your own updates.</p>
+      <div class="list" id="incList"><p class="empty">Loading…</p></div>
+      <p class="error" id="incError" role="alert"></p>
+      <h3>New incident</h3>
+      <form id="incNewForm" autocomplete="off">
+        <label>Title
+          <input id="incNewTitle" maxlength="120" required>
+        </label>
+        <div>
+          <label>Affected sites</label>
+          <div class="targets">
+            <label><input type="checkbox" name="incSite" value="us"> US</label>
+            <label><input type="checkbox" name="incSite" value="ca"> CA</label>
+            <label><input type="checkbox" name="incSite" value="launcher"> Launcher</label>
+          </div>
+        </div>
+        <div class="row">
+          <label>Type
+            <select id="incNewCategory" required>
+              <option value="security">Security incident</option>
+              <option value="outage">Outage</option>
+              <option value="degraded" selected>Degraded performance</option>
+              <option value="maintenance">Maintenance</option>
+              <option value="other">Other</option>
+            </select>
+          </label>
+          <label>Severity
+            <select id="incNewSeverity">
+              <option value="minor">Minor</option>
+              <option value="major" selected>Major</option>
+              <option value="critical">Critical</option>
+            </select>
+          </label>
+          <label>Status
+            <select id="incNewStatus">
+              <option value="investigating" selected>Investigating</option>
+              <option value="identified">Identified</option>
+              <option value="monitoring">Monitoring</option>
+            </select>
+          </label>
+        </div>
+        <label>First update (max 1000 characters)
+          <textarea id="incNewBody" maxlength="1000" required></textarea>
+        </label>
+        <div class="actions">
+          <button class="primary" type="submit">Create incident</button>
+        </div>
       </form>
     </section>
     <section class="card">
@@ -354,5 +408,6 @@
   </main>
   <script src="/js/admin.js"></script>
   <script src="/js/admin-extra.js"></script>
+  <script src="/js/admin-incidents.js"></script>
 </body>
 </html>

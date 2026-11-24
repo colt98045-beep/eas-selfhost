@@ -173,6 +173,14 @@ export async function pruneUptime(env, { now = Date.now() } = {}) {
     .prepare("DELETE FROM uptime_incidents WHERE ended_at IS NOT NULL AND ended_at < ?")
     .bind(now - INCIDENT_RETENTION_MS)
     .run();
+  // Updates and meta of pruned incidents (tables from 0004; skipped if not applied yet).
+  for (const table of ["incident_updates", "incident_meta"]) {
+    try {
+      await env.ACCESS_LOG.prepare(`DELETE FROM ${table} WHERE incident_id NOT IN (SELECT id FROM uptime_incidents)`).run();
+    } catch {
+      // migration 0004 not applied
+    }
+  }
   return { ok: true };
 }
 

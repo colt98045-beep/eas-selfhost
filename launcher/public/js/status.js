@@ -15,6 +15,9 @@
   var incidentsEl = document.getElementById("incidents");
   var lastStatus = null;
   var uptime = null;
+  var incidentsData = null;
+  var SEV_LABEL = { critical: "Critical", major: "Major", minor: "Minor", maintenance: "Maintenance" };
+  var KIND_LABEL = { outage: "Health check", manual: "Incident", lockout: "Lockout" };
 
   function setDot(el, state) {
     el.classList.remove("up", "gated", "down");
@@ -136,12 +139,48 @@
       '</div>';
   }
 
+  // Statuspage-style incident with its updates timeline (newest first).
+  function fullIncidentHtml(i) {
+    var isLock = i.kind === "lockout";
+    var sevCls = isLock ? "lockout reason-" + esc(i.reason || "maintenance") : "sev-" + esc(i.severity || "major");
+    var badge = isLock
+      ? esc((i.icon ? i.icon + " " : "") + "Lockout · " + (i.reason_label || "Maintenance")) + (i.scheduled ? " (scheduled)" : "")
+      : esc(i.category_label || KIND_LABEL[i.kind] || "Incident") + (i.kind === "outage" ? " · Health check" : "") + " · " + esc(SEV_LABEL[i.severity] || i.severity || "");
+    var updates = (i.updates || []).map(function (u) {
+      return '<li class="upd st-' + esc(u.status) + '"><span class="upd-status">' + esc(u.status_label) + '</span>' +
+        '<span class="upd-at">' + esc(u.at) + (u.edited ? " (edited)" : "") + '</span>' +
+        '<p>' + esc(u.body) + '</p></li>';
+    }).join("");
+    var fallback = isLock && i.message ? '<li class="upd st-investigating"><span class="upd-status">Locked</span><span class="upd-at">' + esc(i.started_at) + '</span><p>' + esc(i.message) + '</p></li>' : "";
+    return '<article class="incident full ' + sevCls + '">' +
+      '<div class="inc-top"><div><h3>' + esc(i.title) + '</h3>' +
+      '<span class="tag kind ' + (isLock ? "lockout" : "auto") + '">' + badge + '</span>' +
+      (i.sites_label ? ' <span class="inc-sites">' + esc(i.sites_label) + '</span>' : '') + '</div>' +
+      '<span class="tag ' + (i.ongoing ? "ongoing" : "resolved") + '">' + (i.ongoing ? "Ongoing" : "Resolved") + '</span></div>' +
+      '<div class="when">' + esc(i.started_at) + (i.ended_at ? " to " + esc(i.ended_at) : " to now") + ' · ' + esc(i.duration) +
+      (i.kind === "outage" && i.status ? " · HTTP " + esc(i.status) : "") + '</div>' +
+      ((updates || fallback) ? '<ol class="timeline">' + (updates || fallback) + '</ol>' : '') +
+      '</article>';
+  }
+
+  function renderIncidents(data) {
+    incidentsData = data;
+    var all = (data.active || []).concat(data.recent || []);
+    document.getElementById("open-inc").textContent = String((data.active || []).length);
+    incidentsEl.innerHTML = all.length ? all.map(fullIncidentHtml).join("") : '<p class="muted">No incidents in the last 30 days.</p>';
+  }
+
+  function loadIncidents() {
+    getJson("/api/incidents").then(renderIncidents).catch(function () {});
+  }
+
   function renderUptime(data) {
     uptime = data;
     var o = data.overall || {};
     document.getElementById("up-24h").textContent = pct(o["24h"]);
     document.getElementById("up-7d").textContent = pct(o["7d"]);
     document.getElementById("up-30d").textContent = pct(o["30d"]);
+    if (incidentsData) { if (lastStatus) render(lastStatus); return; }
     document.getElementById("open-inc").textContent = String(data.open_incidents || 0);
     var list = data.incidents || [];
     if (!data.has_data) {
@@ -190,10 +229,12 @@
     timer = setInterval(function () { load(false); }, REFRESH_MS);
   }
 
-  refreshBtn.addEventListener("click", function () { load(true); loadUptime(); schedule(); });
+  refreshBtn.addEventListener("click", function () { load(true); loadUptime(); loadIncidents(); schedule(); });
 
   load(false);
   loadUptime();
+  loadIncidents();
+  setInterval(loadIncidents, UPTIME_MS);
   schedule();
   setInterval(loadUptime, UPTIME_MS);
   if (window.EASAnnouncements) window.EASAnnouncements.mount({ site: "launcher" });

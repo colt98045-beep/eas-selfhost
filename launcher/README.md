@@ -33,6 +33,10 @@ The status API does not fetch `/api/status` against itself.
 
 A 5-minute cron (`*/5 * * * *`) runs the same checks and folds each result into an hourly row in D1 (`uptime_hourly`, kept 35 days). An incident opens in `uptime_incidents` (kept 90 days) when a check is first seen down and closes when it is next seen up or gated. Tables come from `schema/migrations/0003_uptime.sql`.
 
+### Incidents and updates
+
+`/status` lists incidents like a status page: health-check outages, lockouts (`lockout:<site>`) and manual incidents created in `/admin`. A manual incident has a title, affected sites, a severity (minor, major, critical) and a type (Security incident, Outage, Degraded performance, Maintenance, Other); it never locks a site or changes its up/down status. Admins post timestamped updates (Investigating, Identified, Monitoring, Resolved); posting Resolved closes a health-check or manual incident, while a lockout incident closes when the site is unlocked. Admins can edit or delete only their own updates, and every change is written to `admin_audit`. Active incidents show as a banner on the launcher home. Public read API: `GET /api/incidents` (`active` and `recent`, last 30 days, authors hidden). Admin API: `/api/admin/incidents` (GET, POST) and `/api/admin/incidents/:id/updates[/:uid]` (POST, PATCH, DELETE). Tables come from `schema/migrations/0004_incident_updates.sql` (apply before deploying; the site keeps working without it, but updates are disabled).
+
 - `GET /api/uptime` (public, CORS `*`, cached 60s): 24h, 7-day and 30-day uptime overall and per check, 30 daily bars (ET days), a 24-hour latency sparkline per check, and the last 30 days of incidents. Returns 503 until the migration is applied; `/status` then just hides the history.
 - `GET /api/badge?target=overall|us|ca|launcher[&metric=status|uptime24h|uptime7d|uptime30d]` (public): a [shields.io endpoint](https://shields.io/badges/endpoint-badge) payload, e.g. `https://img.shields.io/endpoint?url=https://eas-launcher.your-subdomain.workers.dev/api/badge?target=us`.
 

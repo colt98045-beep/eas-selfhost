@@ -6,6 +6,7 @@
 // and fail closed if Access is missing or misconfigured.
 import { getStatus } from "./status.js";
 import { currentLockouts, decorateStatus, syncLockoutIncidents } from "./lockout.js";
+import { handleAdminIncidents, handlePublicIncidents } from "./incidents.js";
 import { isAdminPath, requireAccess } from "./access.js";
 import { handlePublicAnnouncements, handleAdminApi } from "./announcements.js";
 import { handlePublicMaintenance, handleAdminMaintenance, maybeServeMaintenance } from "./maintenance.js";
@@ -95,6 +96,10 @@ async function handleRequest(request, env) {
       return jsonResponse(decorateStatus(payload, await currentLockouts(env)), method);
     }
 
+    if (path === "/api/incidents") {
+      return handlePublicIncidents(request, env);
+    }
+
     if (path === "/api/uptime") {
       return handlePublicUptime(request, env);
     }
@@ -138,6 +143,9 @@ async function handleRequest(request, env) {
           resetUptimeCache();
         }
         return res;
+      }
+      if (path === "/api/admin/incidents" || path.startsWith("/api/admin/incidents/")) {
+        return handleAdminIncidents(request, env, auth);
       }
       if (path.startsWith("/api/admin")) {
         return handleAdminApi(request, env, auth);

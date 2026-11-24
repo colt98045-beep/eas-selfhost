@@ -136,6 +136,17 @@
     .lockout.reason-update { --lock: #3b82f6; background: rgba(59,130,246,.08); }
     .lockout.reason-other { --lock: #a78bfa; background: rgba(167,139,250,.08); }
     .status.locked { color: var(--accent); }
+    .inc-banner-host { display: grid; gap: 10px; margin-bottom: 22px; }
+    .inc-banner-host[hidden] { display: none; }
+    .inc-banner { --sev: #f97316; border: 1px solid var(--border); border-left: 5px solid var(--sev); border-radius: var(--radius); background: var(--surface); padding: 14px 16px; }
+    .inc-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px; }
+    .inc-sev { font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--sev); }
+    .inc-title { font-size: 1rem; }
+    .inc-sites { color: var(--muted); font-size: .8rem; }
+    .inc-text { margin: 6px 0 4px; white-space: pre-wrap; font-size: .9rem; }
+    .inc-meta, .inc-count, .inc-more { margin: 0; color: var(--muted); font-size: .78rem; }
+    .inc-meta a, .inc-more a { color: inherit; }
+    .inc-count { font-weight: 700; color: var(--text); }
     footer a { color: inherit; }
     .dot.down {
       background: var(--accent);
@@ -236,6 +247,7 @@
     </nav>
   </header>
   <main id="main">
+    <div id="incidentBanner" class="inc-banner-host" role="region" aria-label="Active incidents" aria-live="polite" hidden></div>
     <div class="toolbar">
       <button type="button" class="primary" id="openBoth">Open both sites</button>
       <p class="hint" id="popupHint">Your browser may block the second tab. Allow pop-ups for this page if only one site opens.</p>
@@ -285,5 +297,6 @@
   </main>
   <script src="/banner.js"></script>
   <script src="/js/launcher.js"></script>
+  <script src="/js/incident-banner.js"></script>
 </body>
 </html>

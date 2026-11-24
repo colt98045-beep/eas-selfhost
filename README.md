@@ -18,7 +18,7 @@ You can run it two ways:
 | `launcher/` | `eas-launcher` Worker + static assets: `/`, `/status`, `/privacy`, `/admin`, `/api/status`, `/api/uptime`, `/api/badge`, `/api/announcements`, `/api/maintenance`, `/api/admin/*`. Crons for log pruning, uptime and scheduled maintenance. |
 | `us/` | `eas-repository` Worker: the US dashboard and its `/api/*` proxies (GWES + NOAA/NWS), all behind a Turnstile gate except `/privacy` and `/manifest.json`. Also `eas_monitor.py`, a plain local server with no gate. |
 | `ca/` | `eas-repository-ca` Worker: the Canada dashboard and `/api/canada`, `/api/active` (Environment Canada GeoMet). Also `eas_monitor.py` for local use. |
-| `schema/migrations/` | D1 migrations `0001_init.sql`, `0002_add_ip.sql`, `0003_uptime.sql` for the shared `eas-access-log` database. |
+| `schema/migrations/` | D1 migrations `0001_init.sql`, `0002_add_ip.sql`, `0003_uptime.sql`, `0004_incident_updates.sql` for the shared `eas-access-log` database. |
 | `scripts/configure.mjs` | Replaces the placeholders with your values in one go. |
 
 Each folder also has its own README with route-level detail.
@@ -122,11 +122,11 @@ node scripts/configure.mjs --kv-id <kv id> --d1-id <d1 id> --account-id <account
 cd launcher && npx wrangler d1 migrations apply eas-access-log --remote && cd ..
 ```
 
-`migrations apply` runs `schema/migrations/0001_init.sql`, `0002_add_ip.sql` and `0003_uptime.sql` in order and records what it applied. To apply them by hand instead:
+`migrations apply` runs `schema/migrations/0001_init.sql`, `0002_add_ip.sql`, `0003_uptime.sql` and `0004_incident_updates.sql` in order and records what it applied. To apply them by hand instead:
 
 ```bash
 cd launcher
-for f in 0001_init 0002_add_ip 0003_uptime; do
+for f in 0001_init 0002_add_ip 0003_uptime 0004_incident_updates; do
   npx wrangler d1 execute eas-access-log --remote --file=../schema/migrations/$f.sql
 done
 ```

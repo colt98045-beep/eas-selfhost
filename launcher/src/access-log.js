@@ -9,6 +9,7 @@ export const DEFAULT_EXCLUDE = [
   "/manifest.json",
   "/api/maintenance",
   "/api/uptime",
+  "/api/incidents",
   "/api/badge",
   "/icon.svg",
   "/favicon.ico",

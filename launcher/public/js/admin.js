@@ -72,14 +72,20 @@
         </label>`;
   }
 
+  // Button text matches what pressing it will do (was: "Lock site" shown while unlocking).
+  function maintButtonLabel(wasOn, checked) {
+    if (wasOn) return checked ? "Update lockout" : "Unlock site";
+    return checked ? "Lock site" : "Save (stays open)";
+  }
+
   function renderMaintenance(sites) {
     maintGrid.innerHTML = SITE_ORDER.map((id) => {
       const row = (sites && sites[id]) || { on: false, message: "", eta: null, label: id };
       const checked = row.on ? "checked" : "";
       const onClass = row.on || row.effective_on ? " on" : "";
       const label = row.on ? "Locked" : "Open";
-      const action = row.on ? "Update lockout" : "Lock site";
-      return `<form class="maint-site${onClass}" data-site="${id}">
+      const action = maintButtonLabel(!!row.on, !!row.on);
+      return `<form class="maint-site${onClass}" data-site="${id}" data-was-on="${row.on ? "1" : "0"}">
         <div class="maint-head">
           <h3>${escapeHtml(row.label || id)}${!row.on && row.scheduled ? ` <span class="pill sched">Scheduled lock until ${escapeHtml(row.scheduled.end_et || "")}</span>` : ""}</h3>
           <label class="toggle"><input type="checkbox" name="on" ${checked}><span class="toggle-state">${label}</span></label>
@@ -365,29 +371,17 @@
     if (other) other.hidden = event.target.value !== "other";
   });
 
-  maintGrid.addEventListener("change", (event) => {
-    const form = event.target.closest("form[data-site]");
-    if (!form || event.target.name !== "on") return;
-    const on = event.target.checked;
-    form.classList.toggle("on", on);
-    const state = form.querySelector(".toggle-state");
-    if (state) state.textContent = on ? "Locked" : "Open";
-    const btn = form.querySelector("button[type='submit']");
-    if (btn) btn.textContent = on ? "Update lockout" : "Lock site";
-  });
-
-  maintGrid.addEventListener("submit", async (event) => {
-    event.preventDefault();
-    const form = event.target.closest("form[data-site]");
-    if (!form) return;
+  async function saveMaintenance(form, on) {
     maintError.textContent = "";
+    const btn = form.querySelector("button[type='submit']");
+    if (btn) btn.disabled = true;
     try {
       const data = await api("/api/admin/maintenance", {
         method: "PUT",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
           site: form.getAttribute("data-site"),
-          on: form.querySelector('input[name="on"]').checked,
+          on,
           message: form.querySelector('[name="message"]').value,
           eta: inputToIso(form.querySelector('[name="eta"]').value),
           reason: form.querySelector('[name="reason"]').value,
@@ -395,10 +389,47 @@
         }),
       });
       renderMaintenance(data.sites || {});
+      return true;
     } catch (err) {
-      maintError.textContent = err.message || "Could not update lockout";
+      maintError.textContent = "Not saved: " + (err.message || "could not update lockout");
+      if (btn) btn.disabled = false;
+      return false;
+    }
+  }
+
+  maintGrid.addEventListener("change", (event) => {
+    const form = event.target.closest("form[data-site]");
+    if (!form || event.target.name !== "on") return;
+    const on = event.target.checked;
+    const wasOn = form.getAttribute("data-was-on") === "1";
+    form.classList.toggle("on", on);
+    const state = form.querySelector(".toggle-state");
+    if (state) state.textContent = on ? "Locked" : "Open";
+    const btn = form.querySelector("button[type='submit']");
+    if (btn) btn.textContent = maintButtonLabel(wasOn, on);
+    // Switching a locked site to Open saves the unlock straight away; locking still
+    // needs the button so the reason and message can be set first.
+    if (wasOn && !on) {
+      if (state) state.textContent = "Unlocking…";
+      return saveMaintenance(form, false).then((ok) => {
+        if (!ok) {
+          event.target.checked = true;
+          form.classList.toggle("on", true);
+          if (state) state.textContent = "Locked";
+          if (btn) btn.textContent = maintButtonLabel(true, true);
+        }
+        return ok;
+      });
     }
   });
+
+  maintGrid.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const form = event.target.closest("form[data-site]");
+    if (!form) return;
+    await saveMaintenance(form, form.querySelector('input[name="on"]').checked);
+  });
+
 
   cancelBtn.addEventListener("click", resetForm);
 
