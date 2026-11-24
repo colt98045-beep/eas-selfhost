@@ -198,7 +198,7 @@ test("admin PUT toggles one site and leaves the others alone", async () => {
 
 test("maybeServeMaintenance locks only launcher pages and fails open", async () => {
   const state = defaultMaintenance();
-  state.launcher = { on: true, message: "Hold tight.", eta: "2026-11-24T20:00:00.000Z", updated_at: null, updated_by: null };
+  state.launcher = { on: true, message: "Hold tight.", eta: "2026-11-25T20:00:00.000Z", updated_at: null, updated_by: null };
   const env = envWith(state);
 
   const page = await maybeServeMaintenance(new Request("https://eas-launcher.your-subdomain.workers.dev/"), env);
@@ -206,7 +206,7 @@ test("maybeServeMaintenance locks only launcher pages and fails open", async () 
   assert.equal(page.status, 503);
   const html = await page.text();
   assert.match(html, /Hold tight/);
-  assert.match(html, /24\/11\/2026 15:00:00 ET/);
+  assert.match(html, /25\/11\/2026 15:00:00 ET/);
   assert.ok(page.headers.get("retry-after"));
 
   const statusPage = await maybeServeMaintenance(new Request("https://eas-launcher.your-subdomain.workers.dev/status"), env);
