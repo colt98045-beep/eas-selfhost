@@ -14,6 +14,8 @@ You can run it two ways:
 
 > ⚠️ **The privacy policy is a template.** `launcher/privacy/policy.html` and `policy.fr.html` describe one specific deployment. You **must** rewrite them for yours (who you are, what you log, where, how long, your contact, the laws that apply to you) and delete the visible "Template notice" before you publish. It is not legal advice.
 
+**Documentation:** [Project wiki](https://github.com/colt98045-beep/eas-selfhost/wiki)
+
 ## What's in here
 
 | Folder | What it is |

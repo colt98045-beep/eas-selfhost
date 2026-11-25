@@ -12,6 +12,9 @@ the US dashboard also lives in `us/CHANGELOG.md`.
 ## 24/11/2026
 
 ### Changed
+- Added a documentation link to the project wiki.
+
+### Changed
 - Synced legal compliance and caching updates across `launcher/`, `us/` and
   `ca/` (preserving placeholders only): bilingual Open Government Licence –
   Canada credits and disclaimers, non-flag CA tab icon, US NOAA/NWS/FEMA/FCC
