@@ -22,8 +22,19 @@ ok(/const CACHE = "eas-ca-v\d+"/.test(fs.readFileSync("sw.js", "utf8")), "servic
 // Tab icon: CA variant as an inline data: URI, identical on index and /privacy (no new asset path)
 const iconOf = (h) => (h.match(/<link rel="icon" type="image\/svg\+xml" href="(data:image\/svg\+xml,[^"]+)">/) || [])[1];
 const caIcon = iconOf(index);
-ok(Boolean(caIcon) && decodeURIComponent(caIcon).includes("#d52b1e"), "index.html has the CA tab icon");
+ok(Boolean(caIcon) && decodeURIComponent(caIcon).includes("#d52b1e") && !decodeURIComponent(caIcon).includes("x='16'"), "index.html has the non-flag CA tab icon");
 ok(iconOf(page) === caIcon, "/privacy uses the same CA tab icon");
 ok(!ignore.some((l) => /icon|favicon/i.test(l)), ".assetsignore unchanged for icons");
-ok(/const CACHE = "eas-ca-v5"/.test(fs.readFileSync("sw.js", "utf8")), "service worker cache bumped to eas-ca-v5");
+ok(/const CACHE = "eas-ca-v6"/.test(fs.readFileSync("sw.js", "utf8")), "service worker cache bumped to eas-ca-v5");
+for (const s of [
+  "Data source: Environment and Climate Change Canada. Contains information licensed under the",
+  "Open Government Licence – Canada",
+  "https://open.canada.ca/en/open-government-licence-canada",
+  "Source des données : Environnement et Changement climatique Canada. Contient des informations visées par la",
+  "Licence du gouvernement ouvert – Canada",
+  "https://ouvert.canada.ca/fr/licence-du-gouvernement-ouvert-canada",
+  "Government of Canada",
+  "gouvernement du Canada",
+  "Alert Ready",
+]) ok(index.includes(s), `index.html includes bilingual credit/disclaimer: ${s}`);
 if (!process.exitCode) console.log("CA privacy tests passed");

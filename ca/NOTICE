@@ -1,0 +1,25 @@
+EAS Repository Canada
+Copyright 2026 Colt
+
+Project: https://github.com/your-github-user/eas-repository-ca
+License: Apache License 2.0
+         https://github.com/your-github-user/eas-repository-ca/blob/main/LICENSE
+
+Data source: Environment and Climate Change Canada. Contains information licensed
+under the Open Government Licence - Canada:
+  https://open.canada.ca/en/open-government-licence-canada
+
+Source des donnees : Environnement et Changement climatique Canada. Contient des
+informations visees par la Licence du gouvernement ouvert - Canada :
+  https://ouvert.canada.ca/fr/licence-du-gouvernement-ouvert-canada
+
+- GeoMet OGC API Features: https://api.weather.gc.ca/collections/weather-alerts/items
+- GeoMet WMS Radar: https://geo.weather.gc.ca/geomet
+
+Requests to these services include a descriptive User-Agent identifying this project
+(EASRepositoryCA/1.0 + repository URL).
+
+EAS Repository Canada is an independent project for information only. It is not
+affiliated with or endorsed by the Government of Canada or Environment and Climate
+Change Canada (ECCC), and is not an official alerting service. Always follow official
+sources and Alert Ready (https://www.alertready.ca/).

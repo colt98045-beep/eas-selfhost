@@ -1,5 +1,5 @@
 EAS Repository
-Copyright 2026 The EAS Authors
+Copyright 2026 Colt
 
 Project: https://github.com/your-github-user/eas-repository
 License: Apache License 2.0
@@ -26,5 +26,6 @@ The dashboard also loads these third-party libraries and assets from public CDNs
 Requests to these services include a descriptive User-Agent identifying this project
 (EASRepository/1.0 + repository URL).
 
-EAS Repository is an independent project and is not affiliated with, endorsed by, or
-operated by the Global Weather & EAS Society, LLC, NOAA, or the National Weather Service.
+EAS Repository is an independent project for information only. It is not affiliated with,
+endorsed by, or operated by NOAA, the National Weather Service, FEMA, the FCC, or the
+Global Weather & EAS Society, LLC, and is not part of the official Emergency Alert System.

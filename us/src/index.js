@@ -38,7 +38,7 @@ const PUBLIC_PRIVACY_PATHS = new Set(['/privacy', '/privacy/']);
 // (which the Python server provided locally and the Worker previously lacked).
 async function originalHandler(request, env, ctx) {
   const path = new URL(request.url).pathname;
-  if (path.startsWith('/api/')) return handleApi(request, path);
+  if (path.startsWith('/api/')) return handleApi(request, path, ctx);
   return env.ASSETS.fetch(request);
 }
 
@@ -49,8 +49,8 @@ async function originalHandler(request, env, ctx) {
 const API_BASE = 'https://alerts.globaleas.org';
 const USER_AGENT = 'EASRepository/1.0 (https://github.com/your-github-user/eas-repository)';
 const ACTIVE_CACHE_TTL_MS = 10_000; // CACHE_TTL = 10 in the Python
-const PROXY_CACHE_TTL_MS = 30_000; // short cache for the large NOAA/NWS feeds
-const EDGE_CACHE_TTL_S = 30;
+const PROXY_CACHE_TTL_MS = 90_000; // 90s cache for NOAA/NWS upstream feeds
+const EDGE_CACHE_TTL_S = 90;
 const MAX_CACHED_BYTES = 8 * 1024 * 1024;
 
 // In-isolate caches (like the Python module-level _cache).
@@ -67,7 +67,15 @@ const noaaState = (st) => [
   `https://api.weather.gov/alerts/active.atom?area=${encodeURIComponent(st)}`,
 ];
 
-async function handleApi(request, path) {
+function defaultCache() {
+  try {
+    return typeof caches !== 'undefined' && caches && caches.default ? caches.default : null;
+  } catch {
+    return null;
+  }
+}
+
+async function handleApi(request, path, ctx) {
   if (request.method !== 'GET' && request.method !== 'HEAD') {
     return text('Unsupported method', 501); // BaseHTTPRequestHandler has only do_GET
   }
@@ -78,18 +86,18 @@ async function handleApi(request, path) {
   }
 
   if (path === '/api/noaa') {
-    return proxy(NOAA_NATIONAL, 'application/xml');
+    return proxy(NOAA_NATIONAL, 'application/xml', null, ctx);
   }
 
   if (path.startsWith('/api/noaa/')) {
     const state = path.split('/').pop().toUpperCase();
     if (state.length === 2) {
-      return proxy(noaaState(state), 'application/xml');
+      return proxy(noaaState(state), 'application/xml', null, ctx);
     }
   }
 
   if (path === '/api/nws') {
-    return proxy(['https://api.weather.gov/alerts/active'], 'application/json', { Accept: 'application/geo+json' });
+    return proxy(['https://api.weather.gov/alerts/active'], 'application/json', { Accept: 'application/geo+json' }, ctx);
   }
 
   return text('Not Found', 404);
@@ -120,16 +128,43 @@ async function fetchActiveAlerts() {
   }
 }
 
-async function proxy(urls, contentType, extraHeaders) {
+async function proxy(urls, contentType, extraHeaders, ctx) {
   const now = Date.now();
   const key = urls.join(' ') + JSON.stringify(extraHeaders || {});
   const hit = proxyCache.get(key);
   if (hit && now - hit.ts < PROXY_CACHE_TTL_MS) return apiResponse(hit.body, contentType);
+
+  const edgeCache = defaultCache();
+  const cacheKey = new Request(urls[0], { method: 'GET' });
+  if (edgeCache) {
+    try {
+      const cached = await edgeCache.match(cacheKey);
+      if (cached && cached.ok) {
+        const body = await cached.arrayBuffer();
+        if (body.byteLength <= MAX_CACHED_BYTES) proxyCache.set(key, { body, ts: now });
+        return apiResponse(body, contentType);
+      }
+    } catch {
+      // ignore Cache API read error and fall through to upstream
+    }
+  }
+
   for (const url of urls) {
     try {
       const r = await upstreamFetch(url, extraHeaders, 20_000);
       const body = await r.arrayBuffer();
-      if (body.byteLength <= MAX_CACHED_BYTES) proxyCache.set(key, { body, ts: now });
+      if (body.byteLength <= MAX_CACHED_BYTES) {
+        proxyCache.set(key, { body, ts: now });
+        if (edgeCache) {
+          const cachedRes = new Response(body, {
+            status: 200,
+            headers: { 'Content-Type': contentType, 'Cache-Control': `public, max-age=${EDGE_CACHE_TTL_S}` },
+          });
+          const putWork = edgeCache.put(cacheKey, cachedRes).catch(() => {});
+          if (ctx && typeof ctx.waitUntil === 'function') ctx.waitUntil(putWork);
+          else await putWork;
+        }
+      }
       return apiResponse(body, contentType);
     } catch (e) {
       console.log(`Proxy error (${url}): ${e}`);
@@ -141,7 +176,7 @@ async function proxy(urls, contentType, extraHeaders) {
 function apiResponse(body, contentType) {
   return new Response(body, {
     status: 200,
-    headers: { 'Content-Type': contentType, 'Access-Control-Allow-Origin': '*' },
+    headers: { 'Content-Type': contentType, 'Access-Control-Allow-Origin': '*', 'Cache-Control': 'private, no-store' },
   });
 }
 // ---------------------------------------------------------------------------

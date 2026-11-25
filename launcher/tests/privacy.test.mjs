@@ -11,7 +11,7 @@ test("/privacy is generated from privacy/policy.html and is current", () => {
   const page = fs.readFileSync(new URL("../public/privacy.html", import.meta.url), "utf8");
   assert.match(page, /Effective date: 24\/11\/2026/);
   assert.match(page, /mailto:admin@example.com/);
-  for (const w of ["30 days", "full IP address", "Cloudflare Access", "Turnstile", "PIPEDA", "GDPR", "California", "not legal advice"]) assert.ok(page.includes(w), w);
+  for (const w of ["30 days", "full IP address", "Cloudflare Access", "Turnstile", "PIPEDA", "GDPR", "California", "35 days", "90 days", "admin audit", "not legal advice"]) assert.ok(page.includes(w), w);
   assert.doesNotMatch(page, /<script/i, "no scripts, works under any CSP");
 });
 

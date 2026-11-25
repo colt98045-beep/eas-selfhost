@@ -18,7 +18,7 @@ const get = (p, init) => worker.fetch(new Request(base + p, init), env);
 // Content
 for (const w of ['Effective date: 24/11/2026', 'mailto:admin@example.com', '30 days', 'full IP address', 'Turnstile',
   'Cloudflare Access', 'PIPEDA', 'Quebec', 'Office of the Privacy Commissioner of Canada', 'California',
-  'We do not sell or share personal information', 'GDPR', 'under 13', 'outside Canada', 'not legal advice'])
+  'We do not sell or share personal information', 'GDPR', 'under 13', 'outside Canada', '35 days', '90 days', 'admin audit', 'not legal advice'])
   ok(PRIVACY_HTML.includes(w), `policy mentions ${w}`);
 ok(!/<script/i.test(PRIVACY_HTML), 'policy page has no scripts');
 ok(!/<form/i.test(PRIVACY_HTML), 'policy page has no forms');
@@ -73,5 +73,9 @@ for (const p of ['/icon.svg', '/favicon.ico', '/favicon.svg']) {
   const res = await get(p);
   ok(res.status === 403 && (await res.text()).includes('cf-turnstile'), `${p} is still gated (no new icon path)`);
 }
-ok(/const CACHE = "eas-v5"/.test(fs.readFileSync('sw.js', 'utf8')), 'service worker cache bumped to eas-v5');
+ok(/const CACHE = "eas-v6"/.test(fs.readFileSync('sw.js', 'utf8')), 'service worker cache bumped to eas-v5');
+const footer = html.slice(html.indexOf('<footer class="site-footer">'));
+for (const s of ['Data: NOAA / National Weather Service', 'FEMA', 'FCC', 'Emergency Alert System', 'for information only']) {
+  ok(footer.includes(s), `footer includes ${s}`);
+}
 if (!process.exitCode) console.log('US privacy tests passed');

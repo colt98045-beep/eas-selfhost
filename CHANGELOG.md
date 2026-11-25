@@ -11,6 +11,13 @@ the US dashboard also lives in `us/CHANGELOG.md`.
 
 ## 24/11/2026
 
+### Changed
+- Synced legal compliance and caching updates across `launcher/`, `us/` and
+  `ca/` (preserving placeholders only): bilingual Open Government Licence –
+  Canada credits and disclaimers, non-flag CA tab icon, US NOAA/NWS/FEMA/FCC
+  disclaimers, 90-second Worker upstream Cache API + isolate caching, and
+  accurate D1 retention windows in `/privacy`.
+
 ### Added
 - Launcher incident updates, manual incidents with a type, an active-incident
   banner, and the admin unlock fix. D1 migration `0004_incident_updates.sql`

@@ -5,17 +5,26 @@ import { logRequest } from "./access-log.js";
 const GEOMET_URL = "https://api.weather.gc.ca/collections/weather-alerts/items";
 const DEFAULT_QUERY = "?f=json&limit=500";
 const USER_AGENT = "EASRepositoryCA/1.0 (https://github.com/your-github-user/eas-repository-ca)";
-const CACHE_TTL_MS = 60_000;
+const CACHE_TTL_S = 90;
+const CACHE_TTL_MS = CACHE_TTL_S * 1000;
 const TIMEOUT_MS = 20_000;
 const MAX_CACHED_BYTES = 8 * 1024 * 1024;
 const memCache = new Map();
 
+function defaultCache() {
+  try {
+    return typeof caches !== "undefined" && caches && caches.default ? caches.default : null;
+  } catch {
+    return null;
+  }
+}
+
 const app = {
-  async fetch(request, env) {
+  async fetch(request, env, ctx) {
     const url = new URL(request.url);
     if (url.pathname === "/api/canada" || url.pathname === "/api/active") {
       if (request.method !== "GET" && request.method !== "HEAD") return plain("Unsupported method", 501);
-      return geomet(url.search || DEFAULT_QUERY);
+      return geomet(url.search || DEFAULT_QUERY, ctx);
     }
     if (url.pathname.startsWith("/api/")) return plain("Not Found", 404);
     if (env && env.ASSETS) return env.ASSETS.fetch(request);
@@ -47,7 +56,7 @@ export function withSecurityHeaders(response) {
 
 export default {
   async fetch(request, env, ctx) {
-    const response = withSecurityHeaders(await app.fetch(request, env));
+    const response = withSecurityHeaders(await app.fetch(request, env, ctx));
     try {
       logRequest(ctx, env, request, response, { site: "ca" });
     } catch {
@@ -57,22 +66,47 @@ export default {
   },
 };
 
-async function geomet(search) {
+async function geomet(search, ctx) {
   const upstream = GEOMET_URL + search;
   const now = Date.now();
   const hit = memCache.get(upstream);
   if (hit && now - hit.ts < CACHE_TTL_MS) return json(hit.body);
+
+  const edgeCache = defaultCache();
+  const cacheKey = new Request(upstream, { method: "GET" });
+  if (edgeCache) {
+    try {
+      const cached = await edgeCache.match(cacheKey);
+      if (cached && cached.ok) {
+        const body = await cached.arrayBuffer();
+        if (body.byteLength <= MAX_CACHED_BYTES) memCache.set(upstream, { body, ts: now });
+        return json(body);
+      }
+    } catch {
+      // ignore Cache API read error and fall back to upstream
+    }
+  }
+
   try {
     const r = await fetch(upstream, {
       headers: { "User-Agent": USER_AGENT, Accept: "application/geo+json" },
       signal: AbortSignal.timeout(TIMEOUT_MS),
-      cf: { cacheTtl: 60, cacheEverything: true },
+      cf: { cacheTtl: CACHE_TTL_S, cacheEverything: true },
     });
     if (!r.ok) throw new Error(`HTTP ${r.status}`);
     const body = await r.arrayBuffer();
     JSON.parse(new TextDecoder().decode(body));
     if (body.byteLength <= MAX_CACHED_BYTES) memCache.set(upstream, { body, ts: now });
-    return json(body);
+    const out = json(body);
+    if (edgeCache && body.byteLength <= MAX_CACHED_BYTES) {
+      const putWork = edgeCache.put(cacheKey, out.clone()).catch(() => {});
+      if (ctx && typeof ctx.waitUntil === "function") {
+        ctx.waitUntil(putWork);
+      } else {
+        await putWork;
+      }
+    }
+    return out;
   } catch (e) {
     console.log(`Environment Canada fetch error: ${e}`);
     return plain("Upstream feed unavailable", 502);
@@ -85,7 +119,7 @@ function json(body) {
     headers: {
       "Content-Type": "application/json",
       "Access-Control-Allow-Origin": "*",
-      "Cache-Control": "public, max-age=60",
+      "Cache-Control": `public, max-age=${CACHE_TTL_S}`,
     },
   });
 }

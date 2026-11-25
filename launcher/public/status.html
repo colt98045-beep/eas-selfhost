@@ -321,7 +321,7 @@
     </section>
     <footer>
       Live checks run on the launcher Worker with an 8s timeout and a 15s cache; the page refreshes every 20s.
-      Uptime history is sampled every 5 minutes by a cron on the launcher and kept for 30 days; each bar is one ET day.
+      Uptime history is sampled every 5 minutes by a cron on the launcher (30-day chart; hourly rollups kept 35 days, closed incidents 90 days); each bar is one ET day.
       An incident opens when a check is first seen down and closes when it is next seen up.
       A site locked from the admin panel (or by an active scheduled window) shows as <strong>Down</strong> with its reason and is listed as a <strong>Lockout</strong> incident; lockout time is not counted as uptime or downtime. A US Turnstile challenge (HTTP 403) counts as <strong>Up, gated</strong> — the Worker is up, and this check does not pass the gate or read API bodies.
       Times are 24-hour America/New_York (ET), dates are DD/MM/YYYY.

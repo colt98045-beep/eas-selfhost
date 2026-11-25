@@ -18,7 +18,7 @@
 <ul>
   <li>Lors de votre visite, nous journalisons votre adresse IP complète, la page ou le chemin d'API demandé, l'heure, votre pays, l'agent utilisateur de votre navigateur et le code de statut HTTP.</li>
   <li>Nous utilisons ces journaux uniquement pour la sécurité, la prévention des abus et le bon fonctionnement des sites.</li>
-  <li>Les journaux sont conservés 30 jours, puis supprimés automatiquement.</li>
+  <li>Dans notre base de données Cloudflare D1, les journaux de visite et d'audit administrateur sont conservés 30 jours, les statistiques horaires de disponibilité 35 jours, et les incidents résolus 90 jours après leur clôture, puis supprimés automatiquement.</li>
   <li>Nous ne vendons ni ne partageons aucun renseignement personnel, et nous ne l'utilisons pas à des fins publicitaires.</li>
   <li>Les visiteurs n'ont pas de compte. Nous n'utilisons aucun outil d'analyse ni témoin (cookie) publicitaire.</li>
 </ul>
@@ -28,6 +28,7 @@
 
 <h2>Ce que nous recueillons</h2>
 <p><strong>Journaux de visite.</strong> Pour les demandes de pages et d'API, chaque site enregistre : votre adresse IP complète; un hachage salé et irréversible de cette adresse; le chemin demandé (sans les paramètres de requête); la date et l'heure; le pays que Cloudflare déduit de votre adresse IP (le pays seulement, pas votre position précise); l'agent utilisateur de votre navigateur; le code de statut HTTP; et, sur le site américain, si la vérification anti-robot a été affichée ou réussie. Le site américain journalise aussi les visiteurs à qui la vérification est présentée, c'est pourquoi cette politique peut être lue sans passer la vérification.</p>
+<p><strong>Disponibilité, incidents et journal d'audit administrateur (base D1 du lanceur).</strong> Le lanceur enregistre aussi dans Cloudflare D1 des statistiques agrégées de disponibilité aux 5 minutes (sans adresse IP de visiteur), l'historique public des incidents et mises à jour (y compris le courriel de l'administrateur auteur), ainsi qu'un journal d'audit des actions d'administration.</p>
 <p><strong>Connexions administrateur.</strong> La page d'administration est protégée par Cloudflare Access. Les tentatives de connexion (adresse courriel, heure, adresse IP, pays et résultat) sont enregistrées par Cloudflare Access et visibles par les administrateurs. Seuls les administrateurs invités peuvent se connecter.</p>
 <p><strong>Ce que nous ne recueillons pas.</strong> Nous ne recueillons ni nom, ni adresse postale, ni données de paiement, ni position précise, ni renseignement personnel sensible, et nous ne créons pas de profils de visiteurs.</p>
 
@@ -55,7 +56,7 @@
 <p>Nous ne vendons, ne louons, ne partageons ni ne communiquons autrement vos renseignements personnels à quiconque, sauf si la loi l'exige.</p>
 
 <h2>Durée de conservation</h2>
-<p>Les journaux de visite sont supprimés automatiquement après 30 jours. Les enregistrements de connexion administrateur sont conservés par Cloudflare Access selon ses propres règles. Les données de votre navigateur y restent jusqu'à ce que vous les effaciez.</p>
+<p>Une tâche planifiée quotidienne sur le lanceur supprime automatiquement les données de Cloudflare D1 selon cet échéancier : les journaux de visite (y compris les adresses IP complètes) et d'audit administrateur sont supprimés après 30 jours; les statistiques horaires de disponibilité après 35 jours; et les incidents résolus et leurs mises à jour 90 jours après leur clôture (les incidents ouverts restent conservés jusqu'à 90 jours après leur résolution). Les enregistrements de connexion administrateur sont conservés par Cloudflare Access selon ses propres règles. Les données de votre navigateur y restent jusqu'à ce que vous les effaciez.</p>
 
 <h2>Mesures de sécurité</h2>
 <p>Les journaux sont stockés chez Cloudflare et ne peuvent être consultés que par les administrateurs connectés au moyen de Cloudflare Access. Tout le trafic utilise HTTPS. Nous ne recueillons que ce que la sécurité exige et ne le conservons que peu de temps. Aucun système n'est parfaitement sûr; si un incident présente un risque réel de préjudice grave, nous aviserons les personnes concernées et les autorités lorsque la loi l'exige.</p>
@@ -68,7 +69,7 @@
   <li><strong>Responsabilité :</strong> [YOUR NAME OR ORGANIZATION] est responsable des renseignements personnels traités par les sites et de leur protection. Contact : <a href="mailto:admin@example.com">admin@example.com</a>.</li>
   <li><strong>Fins :</strong> sécurité, prévention des abus et bon fonctionnement des sites. Nous n'utiliserons pas ces renseignements à d'autres fins sans votre consentement, sauf si la loi le permet.</li>
   <li><strong>Consentement :</strong> implicite par votre utilisation des sites, uniquement à cette fin de sécurité (voir « Consentement »).</li>
-  <li><strong>Renseignements recueillis et conservation :</strong> tels que décrits ci-dessus; les journaux de visite sont supprimés après 30 jours.</li>
+  <li><strong>Renseignements recueillis et conservation :</strong> tels que décrits ci-dessus; les journaux de visite et d'audit administrateur sont supprimés après 30 jours, les statistiques horaires après 35 jours et les incidents résolus 90 jours après leur clôture.</li>
   <li><strong>Mesures de sécurité :</strong> telles que décrites ci-dessus.</li>
   <li><strong>Hors du Canada :</strong> les renseignements sont traités à l'extérieur du Canada par Cloudflare, notamment sur des serveurs situés aux États-Unis.</li>
   <li><strong>Vos droits :</strong> accéder à vos renseignements, les faire corriger et retirer votre consentement. Nous répondons dans un délai de 30 jours.</li>

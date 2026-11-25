@@ -24,7 +24,7 @@ const bodyFr = strip(fs.readFileSync(path.join(root, "privacy", "policy.fr.html"
 const ICONS = {
   launcher: "/icon.svg",
   us: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%231e3a8a'/%3E%3Cpath d='M32 10 56 52H8Z' fill='%23dc2626'/%3E%3Crect x='29' y='24' width='6' height='15' rx='3' fill='%23fff'/%3E%3Ccircle cx='32' cy='45' r='3.4' fill='%23fff'/%3E%3C/svg%3E",
-  ca: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23d52b1e'/%3E%3Crect x='16' width='32' height='64' fill='%23fff'/%3E%3Cpath d='M32 14 47 44H17Z' fill='%23d52b1e'/%3E%3Crect x='30' y='23' width='4' height='12' rx='2' fill='%23fff'/%3E%3Ccircle cx='32' cy='39.5' r='2.4' fill='%23fff'/%3E%3C/svg%3E",
+  ca: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23111827'/%3E%3Cpath d='M32 10 56 52H8Z' fill='%23d52b1e'/%3E%3Crect x='29' y='24' width='6' height='15' rx='3' fill='%23fff'/%3E%3Ccircle cx='32' cy='45' r='3.4' fill='%23fff'/%3E%3C/svg%3E",
 };
 
 function page({ title, back, backLabel, bilingual = false, icon = ICONS.launcher }) {

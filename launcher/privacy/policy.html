@@ -22,7 +22,7 @@
 <ul>
   <li>When you visit, we log your full IP address, the page or API path, the time, your country, your browser's user agent and the HTTP status.</li>
   <li>We use these logs only for security and abuse prevention, and to keep the sites working.</li>
-  <li>Logs are kept for 30 days and then deleted automatically.</li>
+  <li>In our Cloudflare D1 database, visit logs and admin audit records are kept for 30 days, hourly uptime rollups for 35 days, and closed incident records for 90 days after closing, then deleted automatically.</li>
   <li>We do not sell or share personal information, and we do not use it for advertising.</li>
   <li>Visitors have no accounts. We use no analytics trackers and no advertising cookies.</li>
 </ul>
@@ -32,6 +32,7 @@
 
 <h2>What we collect</h2>
 <p><strong>Visit logs.</strong> For page and API requests, each site records: your full IP address; a salted one-way hash of that IP; the path you requested (without query strings); the date and time; the country Cloudflare derives from your IP (country only, not your precise location); your browser's user agent; the HTTP status; and, on the US site, whether the bot check was shown or passed. The US site logs visitors who are shown the bot check as well as those who pass it, which is why this policy can be read without passing the check.</p>
+<p><strong>Uptime, incident and admin audit records (launcher D1 database).</strong> The launcher also stores aggregated 5-minute availability rollups (no visitor IP addresses), public status-page incidents and updates (including the posting administrator's email), and an admin audit log of panel actions in Cloudflare D1.</p>
 <p><strong>Admin sign-ins.</strong> The admin page is protected by Cloudflare Access. Sign-in attempts to it (email address, time, IP address, country and whether access was allowed) are recorded by Cloudflare Access and shown to the site administrators. Only invited administrators can sign in.</p>
 <p><strong>What we do not collect.</strong> We do not collect names, postal addresses, payment details, precise location or any sensitive personal information, and we do not build profiles of visitors.</p>
 
@@ -59,7 +60,7 @@
 <p>We do not sell, rent, share or otherwise disclose your personal information to anyone else, except where the law requires it.</p>
 
 <h2>How long we keep it</h2>
-<p>Visit logs are deleted automatically after 30 days. Admin sign-in records are kept by Cloudflare Access under Cloudflare's own retention. Data in your browser stays until you clear it.</p>
+<p>A daily scheduled cleanup job on the launcher automatically deletes records from Cloudflare D1 on the following schedule: visit logs (including full IP addresses) and admin audit records are deleted after 30 days; hourly uptime rollups are deleted after 35 days; and resolved incident records and their updates are deleted 90 days after the incident closes (open incidents remain until resolved plus 90 days). Admin sign-in records are kept by Cloudflare Access under Cloudflare's own retention. Data in your browser stays until you clear it.</p>
 
 <h2>Safeguards</h2>
 <p>Logs are stored in Cloudflare and can be read only by administrators who sign in through Cloudflare Access. All traffic uses HTTPS. We collect only what the security purpose needs and keep it for a short time. No system is perfectly secure; if a breach creates a real risk of significant harm, we will notify affected people and regulators where the law requires it.</p>
@@ -72,7 +73,7 @@
   <li><strong>Accountability:</strong> [YOUR NAME OR ORGANIZATION] is responsible for personal information handled by the sites and is the person in charge of protecting it. Contact: <a href="mailto:admin@example.com">admin@example.com</a>.</li>
   <li><strong>Purpose:</strong> security and abuse prevention, and keeping the sites working. We will not use the information for any other purpose without your consent unless the law allows it.</li>
   <li><strong>Consent:</strong> implied by your use of the sites, for this security purpose only (see "Consent").</li>
-  <li><strong>What we collect and retention:</strong> as described above; visit logs are deleted after 30 days.</li>
+  <li><strong>What we collect and retention:</strong> as described above; visit and admin audit logs are deleted after 30 days, hourly uptime rollups after 35 days, and closed incident records 90 days after closing.</li>
   <li><strong>Safeguards:</strong> as described above.</li>
   <li><strong>Outside Canada:</strong> information is processed outside Canada by Cloudflare, including on servers in the United States.</li>
   <li><strong>Your rights:</strong> to access your information, to have it corrected, and to withdraw consent. We respond within 30 days.</li>
